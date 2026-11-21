@@ -21,7 +21,14 @@ class DeployController extends Controller
             abort(404);
         }
 
-        Artisan::call('migrate', ['--force' => true]);
+        try {
+            Artisan::call('migrate', ['--force' => true]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'ok' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
 
         return response()->json([
             'ok' => true,

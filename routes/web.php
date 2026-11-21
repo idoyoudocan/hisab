@@ -20,7 +20,19 @@ Route::get('/', function () {
 })->name('landing');
 
 // Secured deploy hook (no shell on shared hosting): POST with X-Deploy-Token
-Route::post('/deploy/migrate', [DeployController::class, 'migrate'])->name('deploy.migrate');
+// Must run without the web middleware stack: the session middleware needs
+// the sessions table, which does not exist until migrate runs, and the
+// CSRF middleware would reject the curl call. The token check in the
+// controller is the only guard, so keep DEPLOY_TOKEN secret.
+Route::post('/deploy/migrate', [DeployController::class, 'migrate'])
+    ->withoutMiddleware([
+        \Illuminate\Cookie\Middleware\EncryptCookies::class,
+        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        \Illuminate\Session\Middleware\StartSession::class,
+        \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class,
+    ])
+    ->name('deploy.migrate');
 
 // Auth (guests)
 Route::middleware('guest')->group(function () {
