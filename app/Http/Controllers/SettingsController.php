@@ -24,14 +24,34 @@ class SettingsController extends Controller
     {
         $business = Hisab::requireBusiness();
         $data = $request->validate([
+            'owner_name' => ['nullable', 'string', 'max:150'],
             'name' => ['required', 'string', 'max:150'],
             'type' => ['nullable', 'string', Rule::in(Business::TYPES)],
             'phone' => ['nullable', 'string', 'max:20'],
             'address' => ['nullable', 'string', 'max:255'],
             'opening_cash' => ['required', 'numeric', 'min:0'],
         ]);
+
+        // Module toggles: unchecked boxes send nothing, so build the full set.
+        // When the form sends no modules at all, keep the existing settings.
+        $settings = $business->settings ?? [];
+        if ($request->has('modules')) {
+            $checked = $request->input('modules', []);
+            foreach (array_keys(Business::MODULES) as $key) {
+                $settings[$key] = isset($checked[$key]) && $checked[$key] === '1';
+            }
+        }
+
         $wasRecharge = $business->type === Business::TYPE_RECHARGE;
-        $business->update($data);
+        $business->update([
+            'name' => $data['name'],
+            'type' => $data['type'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'address' => $data['address'] ?? null,
+            'opening_cash' => $data['opening_cash'],
+            'settings' => $settings,
+        ]);
+        Auth::user()->update(array_filter(['name' => $data['owner_name'] ?? null]));
         if (! $wasRecharge && $business->type === Business::TYPE_RECHARGE) {
             Business::seedRechargeCategories($business);
         }

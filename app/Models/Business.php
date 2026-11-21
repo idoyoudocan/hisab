@@ -24,9 +24,25 @@ class Business extends Model
 
     public const TYPE_RECHARGE = 'মোবাইল রিচার্জ ও লোড';
 
+    /**
+     * Optional modules a shopkeeper can hide from Settings.
+     * Key => Bangla label. Defaults: every module is ON (empty settings = all on).
+     */
+    public const MODULES = [
+        'cash_count' => 'ক্যাশ মেলান',
+        'money_accounts' => 'টাকার হিসাব',
+        'sim_balance' => 'সিম ব্যালেন্স',
+        'capital' => 'আমার মূলধন',
+        'ledger' => 'বাকি খাতা',
+        'purchases' => 'কেনাকাটা ও সাপ্লায়ার',
+        'day_close' => 'দিন শেষ',
+        'profit_loss' => 'লাভ-ক্ষতি',
+        'reports' => 'রিপোর্ট',
+    ];
+
     protected $fillable = [
         'user_id', 'name', 'type', 'phone', 'address',
-        'opening_cash', 'plan', 'trial_ends_at',
+        'opening_cash', 'plan', 'trial_ends_at', 'settings', 'paid_until',
     ];
 
     protected function casts(): array
@@ -34,6 +50,8 @@ class Business extends Model
         return [
             'opening_cash' => 'decimal:2',
             'trial_ends_at' => 'datetime',
+            'paid_until' => 'date',
+            'settings' => 'array',
         ];
     }
 
@@ -52,12 +70,44 @@ class Business extends Model
     public function categories(): HasMany { return $this->hasMany(Category::class); }
     public function moneyAccounts(): HasMany { return $this->hasMany(MoneyAccount::class); }
     public function cashCounts(): HasMany { return $this->hasMany(CashCount::class); }
+    public function subscriptionPayments(): HasMany { return $this->hasMany(SubscriptionPayment::class); }
 
     public function isTrialActive(): bool
     {
         return $this->plan === 'trial'
             && $this->trial_ends_at !== null
             && $this->trial_ends_at->isFuture();
+    }
+
+    /** Is an optional module visible for this business? Default: yes. */
+    public function moduleEnabled(string $key): bool
+    {
+        $settings = $this->settings ?? [];
+
+        return ($settings[$key] ?? true) !== false;
+    }
+
+    /** Subscription status: paid | trial | expired. */
+    public function subscriptionStatus(): string
+    {
+        if ($this->paid_until !== null && $this->paid_until->isFuture()) {
+            return 'paid';
+        }
+        if ($this->isTrialActive()) {
+            return 'trial';
+        }
+
+        return 'expired';
+    }
+
+    /** Whole days left in the trial, null when not on trial. */
+    public function trialDaysLeft(): ?int
+    {
+        if (! $this->isTrialActive()) {
+            return null;
+        }
+
+        return (int) now()->startOfDay()->diffInDays($this->trial_ends_at->copy()->startOfDay(), false);
     }
 
     /** Seed the default income/expense categories for a new business. */

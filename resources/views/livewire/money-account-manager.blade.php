@@ -1,12 +1,17 @@
 <div>
-<div class="card">
-  <h2>{{ $editId ? 'অ্যাকাউন্ট এডিট করুন' : 'নতুন অ্যাকাউন্ট যোগ করুন' }}</h2>
+<div class="flex space-between">
+  <h1 style="margin-bottom:0">টাকার হিসাব</h1>
+  <button type="button" class="btn dark sm" wire:click="openAdd">+ অ্যাকাউন্ট যোগ করুন</button>
+</div>
+<p class="muted">সব অ্যাকাউন্ট মিলে মোট ব্যালেন্স <strong>{{ \App\Support\Hisab::money($register->displayBalance($business) + collect($totals)->sum()) }}</strong></p>
+
+<x-modal :show="$showFormModal" wire-prop="showFormModal" title="{{ $editId ? 'অ্যাকাউন্ট এডিট করুন' : 'নতুন অ্যাকাউন্ট যোগ করুন' }}">
   <div class="field-row two">
     <div>
       <label>ধরন</label>
       <select wire:model.live="type">
         @foreach($types as $key => $label)
-          @if($key !== 'cash_register')<option value="{{ $key }}">{{ $label }}</option>@endif
+          @if($key !== 'cash_register' && ($key !== 'sim' || $simEnabled))<option value="{{ $key }}">{{ $label }}</option>@endif
         @endforeach
       </select>
       @error('type')<div class="error">{{ $message }}</div>@enderror
@@ -45,9 +50,9 @@
   </div>
   <div class="flex">
     <button type="button" class="btn mt" wire:click="save">{{ $editId ? 'হালনাগাদ করুন' : 'অ্যাকাউন্ট যোগ করুন' }}</button>
-    @if($editId)<button type="button" class="btn ghost mt" wire:click="cancelEdit">বাতিল</button>@endif
+    <button type="button" class="btn ghost mt" wire:click="cancelEdit">বাতিল</button>
   </div>
-</div>
+</x-modal>
 
 <div class="card">
   <p class="section-label">ক্যাশ রেজিস্টার</p>
@@ -59,32 +64,43 @@
     </div>
     <strong class="num">{{ \App\Support\Hisab::money($register->displayBalance($business)) }}</strong>
   </div>
+  @if($business->moduleEnabled('cash_count'))
   <a href="{{ route('cash-count.index') }}">ক্যাশ মেলান →</a>
+  @endif
 </div>
 
 @foreach($totals as $type => $total)
+  @if($type === 'sim' && ! $simEnabled) @continue @endif
   @php($list = $others->where('type', $type))
-  <div class="card">
-    <p class="section-label">{{ \App\Models\MoneyAccount::types()[$type] }}</p>
-    <h2>{{ \App\Models\MoneyAccount::types()[$type] }} — মোট {{ \App\Support\Hisab::money($total) }}</h2>
-    @forelse($list as $a)
-      <div class="list-row">
-        <div>
-          <strong>{{ $a->label }}</strong>
-          @if($a->provider) · {{ $a->provider }}@endif
-          @if($a->identifier)<br><span class="muted">{{ $a->identifier }}</span>@endif
-          @if($a->note)<br><span class="muted">{{ $a->note }}</span>@endif
+  @if($list->isNotEmpty())
+    <div class="card">
+      <p class="section-label">{{ \App\Models\MoneyAccount::types()[$type] }}</p>
+      <h2>{{ \App\Models\MoneyAccount::types()[$type] }} — মোট {{ \App\Support\Hisab::money($total) }}</h2>
+      @foreach($list as $a)
+        <div class="list-row">
+          <div>
+            <strong>{{ $a->label }}</strong>
+            @if($a->provider) · {{ $a->provider }}@endif
+            @if($a->identifier)<br><span class="muted">{{ $a->identifier }}</span>@endif
+            @if($a->note)<br><span class="muted">{{ $a->note }}</span>@endif
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <strong class="num">{{ \App\Support\Hisab::money($a->balance) }}</strong>
+            <button type="button" class="btn ghost sm" wire:click="editAccount({{ $a->id }})">এডিট</button>
+            <button type="button" class="btn danger sm" wire:click="delete({{ $a->id }})" wire:confirm="এই অ্যাকাউন্টটি মুছে ফেলবেন?">মুছুন</button>
+          </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <strong class="num">{{ \App\Support\Hisab::money($a->balance) }}</strong>
-          <button type="button" class="btn ghost sm" wire:click="editAccount({{ $a->id }})">এডিট</button>
-          <button type="button" class="btn danger sm" wire:click="delete({{ $a->id }})" wire:confirm="এই অ্যাকাউন্টটি মুছে ফেলবেন?">মুছুন</button>
-        </div>
+      @endforeach
+      <button type="button" class="btn ghost sm mt" wire:click="openAdd('{{ $type }}')">+ আরও {{ \App\Models\MoneyAccount::types()[$type] }} যোগ করুন</button>
+    </div>
+  @else
+    <div class="card">
+      <div class="list-row" style="border-bottom:0;padding:4px 0">
+        <span><strong>{{ \App\Models\MoneyAccount::types()[$type] }}</strong> <span class="muted">— এখনো যোগ করা হয়নি</span></span>
+        <button type="button" class="btn ghost sm" wire:click="openAdd('{{ $type }}')">যোগ করুন</button>
       </div>
-    @empty
-      <div class="empty"><span class="ic">🏦</span>এখনো কোনো {{ \App\Models\MoneyAccount::types()[$type] }} অ্যাকাউন্ট যোগ করা হয়নি।<br>উপরের ফর্ম থেকে যোগ করুন।</div>
-    @endforelse
-  </div>
+    </div>
+  @endif
 @endforeach
 
 </div>

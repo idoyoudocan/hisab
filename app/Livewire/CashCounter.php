@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Business;
 use App\Support\Hisab;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class CashCounter extends Component
@@ -13,11 +14,29 @@ class CashCounter extends Component
     /** counts keyed by denomination, e.g. ['1000' => 3] */
     public array $counts = [];
     public string $note = '';
+    public bool $showModal = false;
+    /** When true (dashboard/layout), only the modal renders — no history. */
+    public bool $modalOnly = false;
+    public ?string $lastResult = null;
 
-    public function mount(): void
+    public function mount(bool $modalOnly = false): void
     {
         $this->businessId = Hisab::requireBusiness()->id;
+        $this->modalOnly = $modalOnly;
         $this->resetCounts();
+    }
+
+    /** Opened from the dashboard, bottom nav or any page (Livewire.dispatch). */
+    #[On('open-cash-modal')]
+    public function openModal(): void
+    {
+        $this->lastResult = null;
+        $this->showModal = true;
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
     }
 
     public function resetCounts(): void
@@ -95,17 +114,21 @@ class CashCounter extends Component
         $difference = $this->difference;
         $this->resetCounts();
         $this->note = '';
-        session()->flash(
-            'status',
-            $matched
-                ? 'ক্যাশ মিলেছে ✓ — হিসাবের সাথে গোনা টাকা পুরোপুরি মিলেছে।'
-                : 'গোনা হয়েছে। পার্থক্য '.Hisab::money(abs($difference)).($difference < 0 ? ' কম' : ' বেশি').' — খতিয়ান দেখে নিন।'
-        );
+        $this->lastResult = $matched
+            ? 'ক্যাশ মিলেছে ✓ — হিসাবের সাথে গোনা টাকা পুরোপুরি মিলেছে।'
+            : 'গোনা হয়েছে। পার্থক্য '.Hisab::money(abs($difference)).($difference < 0 ? ' কম' : ' বেশি').' — খতিয়ান দেখে নিন।';
+        session()->flash('status', $this->lastResult);
     }
 
     public function render()
     {
         $business = Business::findOrFail($this->businessId);
+
+        if ($this->modalOnly) {
+            return view('livewire.cash-counter-modal', [
+                'denominations' => Hisab::denominations(),
+            ]);
+        }
 
         return view('livewire.cash-counter', [
             'denominations' => Hisab::denominations(),

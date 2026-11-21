@@ -33,6 +33,18 @@ class Hisab
             ?? throw new \RuntimeException('No business found for the current user.');
     }
 
+    /** Is the given user an owner/admin of the Hisab app? */
+    public static function isAdmin(?\App\Models\User $user = null): bool
+    {
+        $user ??= Auth::user();
+        if ($user === null) {
+            return false;
+        }
+        $admins = array_map('strtolower', config('hisab.admin_emails', []));
+
+        return in_array(strtolower($user->email), $admins, true);
+    }
+
     /** Format a Taka amount, e.g. ৳১,২৫০ — uses Western digits for clarity. */
     public static function money(float|int|string $amount): string
     {

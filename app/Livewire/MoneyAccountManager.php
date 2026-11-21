@@ -17,11 +17,26 @@ class MoneyAccountManager extends Component
     public string $identifier = '';
     public string $balance = '';
     public string $note = '';
+    public bool $showFormModal = false;
 
     public function mount(): void
     {
         $this->businessId = \App\Support\Hisab::requireBusiness()->id;
         $this->provider = MoneyAccount::providersFor($this->type)[0];
+    }
+
+    /** Open the add-account popup, optionally preset to one type. */
+    public function openAdd(?string $type = null): void
+    {
+        $this->cancelEdit();
+        if ($type !== null && in_array($type, [
+            MoneyAccount::TYPE_BANK, MoneyAccount::TYPE_MOBILE_BANKING,
+            MoneyAccount::TYPE_SIM, MoneyAccount::TYPE_OTHER,
+        ], true)) {
+            $this->type = $type;
+            $this->provider = MoneyAccount::providersFor($type)[0];
+        }
+        $this->showFormModal = true;
     }
 
     public function updatedType(): void
@@ -42,6 +57,7 @@ class MoneyAccountManager extends Component
         $this->identifier = $account->identifier ?? '';
         $this->balance = (string) (float) $account->balance;
         $this->note = $account->note ?? '';
+        $this->showFormModal = true;
     }
 
     public function cancelEdit(): void
@@ -49,6 +65,7 @@ class MoneyAccountManager extends Component
         $this->reset(['editId', 'provider', 'label', 'identifier', 'balance', 'note']);
         $this->type = MoneyAccount::TYPE_BANK;
         $this->provider = MoneyAccount::providersFor($this->type)[0];
+        $this->showFormModal = false;
     }
 
     public function save(): void
@@ -66,6 +83,10 @@ class MoneyAccountManager extends Component
             'balance' => ['required', 'numeric', 'min:0'],
             'note' => ['nullable', 'string', 'max:255'],
         ]);
+        if ($data['type'] === MoneyAccount::TYPE_SIM && ! $business->moduleEnabled('sim_balance')) {
+            $this->addError('type', 'সিম ব্যালেন্স ফিচারটি সেটিংস থেকে বন্ধ করা আছে।');
+            return;
+        }
         $data['balance'] = (float) $data['balance'];
 
         if ($this->editId) {
@@ -111,6 +132,7 @@ class MoneyAccountManager extends Component
             'register' => $register,
             'others' => $others,
             'totals' => $totals,
+            'simEnabled' => $business->moduleEnabled('sim_balance'),
         ]);
     }
 }

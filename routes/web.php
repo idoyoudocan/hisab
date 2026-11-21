@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapitalController;
 use App\Http\Controllers\CashbookController;
@@ -63,15 +64,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales/create', [SaleController::class, 'create'])->name('sales.create');
     Route::get('/sales/{id}', [SaleController::class, 'show'])->name('sales.show');
 
-    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
-    Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('customers.show');
-    Route::get('/customers/{id}/export', [ExportController::class, 'customerLedgerCsv'])->name('customers.export');
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index')->middleware('module:ledger');
+    Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('customers.show')->middleware('module:ledger');
+    Route::get('/customers/{id}/export', [ExportController::class, 'customerLedgerCsv'])->name('customers.export')->middleware('module:ledger');
 
-    Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
-    Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
-    Route::get('/purchases/{id}', [PurchaseController::class, 'show'])->name('purchases.show');
+    Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index')->middleware('module:purchases');
+    Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create')->middleware('module:purchases');
+    Route::get('/purchases/{id}', [PurchaseController::class, 'show'])->name('purchases.show')->middleware('module:purchases');
 
-    Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('suppliers.show');
+    Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('suppliers.show')->middleware('module:purchases');
 
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
@@ -80,16 +81,25 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/cashbook', [CashbookController::class, 'index'])->name('cashbook.index');
 
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index')->middleware('module:reports');
 
-    Route::get('/day-close', [DayCloseController::class, 'index'])->name('day-close.index');
-    Route::get('/profit-loss', [ProfitLossController::class, 'index'])->name('profit-loss.index');
+    Route::get('/day-close', [DayCloseController::class, 'index'])->name('day-close.index')->middleware('module:day_close');
+    Route::get('/profit-loss', [ProfitLossController::class, 'index'])->name('profit-loss.index')->middleware('module:profit_loss');
 
-    Route::get('/money-accounts', [MoneyAccountController::class, 'index'])->name('money.index');
-    Route::get('/cash-count', [CashCountController::class, 'index'])->name('cash-count.index');
-    Route::get('/capital', [CapitalController::class, 'index'])->name('capital.index');
+    Route::get('/money-accounts', [MoneyAccountController::class, 'index'])->name('money.index')->middleware('module:money_accounts');
+    Route::get('/cash-count', [CashCountController::class, 'index'])->name('cash-count.index')->middleware('module:cash_count');
+    Route::get('/capital', [CapitalController::class, 'index'])->name('capital.index')->middleware('module:capital');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/password', [SettingsController::class, 'changePassword'])->name('settings.password');
+});
+
+// Owner admin panel — access via HISAB_ADMIN_EMAILS in .env (see config/hisab.php).
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/businesses', [AdminController::class, 'businesses'])->name('businesses');
+    Route::get('/businesses/{business}', [AdminController::class, 'show'])->name('businesses.show');
+    Route::post('/businesses/{business}/extend', [AdminController::class, 'extend'])->name('businesses.extend');
+    Route::post('/businesses/{business}/payments', [AdminController::class, 'recordPayment'])->name('businesses.payments');
 });

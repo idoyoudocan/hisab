@@ -61,10 +61,11 @@ class DashboardController extends Controller
             .($biggestDueCustomer ? '। সবচেয়ে বেশি বাকি '.$biggestDueCustomer['name'].'-এর — '.Hisab::money($biggestDueCustomer['due']) : '');
 
         // First-run checklist: disappears once all three are done.
+        // A disabled cash-count module counts as done (nothing to do).
         $checklist = [
             'products' => $business->products()->exists(),
             'sales' => $business->sales()->exists(),
-            'cashCount' => $business->cashCounts()->exists(),
+            'cashCount' => ! $business->moduleEnabled('cash_count') || $business->cashCounts()->exists(),
         ];
         $checklistDone = $checklist['products'] && $checklist['sales'] && $checklist['cashCount'];
 

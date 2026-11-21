@@ -12,13 +12,21 @@
   @endif
 </div>
 
+@if($business->subscriptionStatus() === 'trial' && ($business->trialDaysLeft() ?? 99) <= 3)
+  <div class="trial-banner">⏰ ফ্রি ট্রায়াল শেষ হতে আর {{ $business->trialDaysLeft() }} দিন বাকি ({{ $business->trial_ends_at->format('d M Y') }})। এরপর প্রো প্ল্যান ৳৩০০/মাস — <a href="{{ route('settings.index') }}">সেটিংসে দেখুন</a></div>
+@elseif($business->subscriptionStatus() === 'expired')
+  <div class="trial-banner urgent">⚠️ আপনার ট্রায়ালের মেয়াদ শেষ। প্রো প্ল্যান (৳৩০০/মাস) নিতে পেমেন্ট করুন — <a href="{{ route('settings.index') }}">সেটিংসে দেখুন</a></div>
+@endif
+
 <div class="hero-cash">
   <div class="eyebrow">ক্যাশে আছে</div>
   <div class="hero-amount">{{ \App\Support\Hisab::money($cash['balance']) }}</div>
   <div class="hero-sub">আজ বিক্রি {{ \App\Support\Hisab::money($todaySaleTotal) }} · আদায় {{ \App\Support\Hisab::money($todayCollections) }} · বাকি {{ \App\Support\Hisab::money($customerDue) }}</div>
   <div class="hero-actions">
     <a class="btn" href="{{ route('sales.create') }}">+ নতুন বিক্রি</a>
+    @if($business->moduleEnabled('day_close'))
     <a class="btn ghost" href="{{ route('day-close.index') }}">দিনের হিসাব দেখুন</a>
+    @endif
   </div>
 </div>
 
@@ -36,10 +44,12 @@
     <span>@if($checklist['sales']) ✅ @else 2️⃣ @endif প্রথম বিক্রি করুন</span>
     @if($checklist['sales'])<span class="badge green">হয়ে গেছে</span>@else<a href="{{ route('sales.create') }}">বিক্রি করুন →</a>@endif
   </div>
+  @if($business->moduleEnabled('cash_count'))
   <div class="list-row">
     <span>@if($checklist['cashCount']) ✅ @else 3️⃣ @endif ক্যাশ মেলান</span>
     @if($checklist['cashCount'])<span class="badge green">হয়ে গেছে</span>@else<a href="{{ route('cash-count.index') }}">মেলান →</a>@endif
   </div>
+  @endif
   <p class="hint">তিনটি শেষ হলেই এই কার্ডটি আর দেখাবে না।</p>
 </div>
 @endif
@@ -75,9 +85,9 @@
   <a class="btn dark qa" href="{{ route('sales.create') }}">+ বিক্রি</a>
   <a class="btn qa" href="{{ route('transactions.index') }}">+ খরচ</a>
   <a class="btn ghost qa" href="{{ route('customers.index') }}">+ আদায়</a>
-  <a class="btn ghost qa" href="{{ route('cash-count.index') }}">💵 ক্যাশ মেলান</a>
-  <a class="btn ghost qa" href="{{ route('money.index') }}">🏦 টাকার হিসাব</a>
-  <a class="btn ghost qa" href="{{ route('capital.index') }}">💰 আমার মূলধন</a>
+  @if($business->moduleEnabled('cash_count'))
+  <button type="button" class="btn ghost qa" onclick="Livewire.dispatch('open-cash-modal')">💵 ক্যাশ মেলান</button>
+  @endif
 </div>
 
 @if($lowStock->isNotEmpty())
@@ -125,6 +135,9 @@
   <div class="list-row"><span>সাপ্লায়ারকে পরিশোধ</span><span class="num">− {{ \App\Support\Hisab::money($cash['supplier_payments']) }}</span></div>
   <div class="list-row"><span>খরচ</span><span class="num">− {{ \App\Support\Hisab::money($cash['expenses']) }}</span></div>
   <div class="total-row"><span>ক্যাশে আছে</span><span class="num">{{ \App\Support\Hisab::money($cash['balance']) }}</span></div>
-  <a href="{{ route('cashbook.index') }}">ক্যাশ বই দেখুন →</a> · <a href="{{ route('money.index') }}">টাকার হিসাব দেখুন →</a>
+  <a href="{{ route('cashbook.index') }}">ক্যাশ বই দেখুন →</a>
+  @if($business->moduleEnabled('cash_count')) · <a href="{{ route('cash-count.index') }}">ক্যাশ মেলান →</a>@endif
+  @if($business->moduleEnabled('money_accounts')) · <a href="{{ route('money.index') }}">টাকার হিসাব দেখুন →</a>@endif
+  @if($business->moduleEnabled('capital')) · <a href="{{ route('capital.index') }}">মূলধন দেখুন →</a>@endif
 </div>
 @endsection
