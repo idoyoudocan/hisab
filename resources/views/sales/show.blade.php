@@ -5,12 +5,15 @@
   <h1>বিক্রি #{{ $sale->id }}</h1>
   <div class="flex">
     <a class="btn ghost" href="{{ route('sales.index') }}">← সব বিক্রি</a>
+    <a class="btn ghost" href="{{ \App\Support\Hisab::receiptShareUrl($sale, $business) }}" target="_blank" rel="noopener">WhatsApp-এ রসিদ পাঠান</a>
     <button class="btn" type="button" onclick="window.print()">🖨️ রসিদ প্রিন্ট</button>
   </div>
 </div>
 <div class="receipt">
-  <h2>{{ $business->name }}</h2>
-  <p style="text-align:center" class="muted">{{ $business->phone ?? '' }} {{ $business->address ? '· '.$business->address : '' }}</p>
+  <div class="receipt-head">
+    <h2>{{ $business->name }}</h2>
+    <p class="muted">{{ $business->phone ?? '' }} {{ $business->address ? '· '.$business->address : '' }}</p>
+  </div>
   <div class="r-row"><span>তারিখ</span><span>{{ $sale->sale_date->format('d M Y') }}</span></div>
   <div class="r-row"><span>কাস্টমার</span><span>{{ $sale->customer?->name ?? 'খুচরা কাস্টমার' }}</span></div>
   <div class="r-row"><span>মাধ্যম</span><span>{{ \App\Support\Hisab::paymentMethods()[$sale->payment_method] ?? $sale->payment_method }}</span></div>
@@ -20,9 +23,13 @@
       <span>{{ \App\Support\Hisab::money($item->total) }}</span>
     </div>
   @endforeach
-  <div class="r-row"><strong>মোট</strong><strong>{{ \App\Support\Hisab::money($sale->total) }}</strong></div>
-  <div class="r-row"><span>পরিশোধ</span><span>{{ \App\Support\Hisab::money($sale->paid) }}</span></div>
-  <div class="r-row"><span>বাকি</span><span>@if($sale->dueAmount() > 0){{ \App\Support\Hisab::money($sale->dueAmount()) }}@else ৳০ (পরিশোধিত)@endif</span></div>
+  <div class="r-row"><span>উপমোট</span><span class="num">{{ \App\Support\Hisab::money($sale->subtotalAmount()) }}</span></div>
+  @if((float) $sale->discount_amount > 0)
+  <div class="r-row"><span>ছাড়</span><span class="num">− {{ \App\Support\Hisab::money($sale->discount_amount) }}</span></div>
+  @endif
+  <div class="r-row"><strong>মোট</strong><strong class="num">{{ \App\Support\Hisab::money($sale->total) }}</strong></div>
+  <div class="r-row"><span>পরিশোধ</span><span class="num">{{ \App\Support\Hisab::money($sale->paid) }}</span></div>
+  <div class="r-row"><span>বাকি</span><span class="num">@if($sale->dueAmount() > 0){{ \App\Support\Hisab::money($sale->dueAmount()) }}@else ৳০ (পরিশোধিত)@endif</span></div>
   @if($sale->note)<p class="muted mt">নোট: {{ $sale->note }}</p>@endif
   <p style="text-align:center" class="muted mt">ধন্যবাদ — আবার আসবেন!</p>
 </div>

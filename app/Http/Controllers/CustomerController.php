@@ -20,9 +20,23 @@ class CustomerController extends Controller
             });
         }
 
+        $sort = $request->string('sort', 'name')->toString();
         $customers = $query->paginate(20)->withQueryString();
 
-        return view('customers.index', compact('customers', 'business'));
+        // Due aging: oldest unpaid sale per customer (computed once per page).
+        $aging = [];
+        foreach ($customers as $c) {
+            $aging[$c->id] = $c->oldestDueDays();
+        }
+        if ($sort === 'age') {
+            $sorted = $customers->getCollection()->sortByDesc(fn ($c) => $aging[$c->id] ?? -1)->values();
+            $customers->setCollection($sorted);
+        } elseif ($sort === 'due') {
+            $sorted = $customers->getCollection()->sortByDesc(fn ($c) => $c->dueAmount())->values();
+            $customers->setCollection($sorted);
+        }
+
+        return view('customers.index', compact('customers', 'business', 'aging', 'sort'));
     }
 
     public function show(int $id): View

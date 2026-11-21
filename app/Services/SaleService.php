@@ -34,6 +34,9 @@ class SaleService
             }
 
             $total = round($total, 2);
+            $discount = round((float) ($data['discount_amount'] ?? 0), 2);
+            $discount = max(0, min($discount, $total));
+            $total = round($total - $discount, 2);
             $paid = round((float) ($data['paid'] ?? 0), 2);
 
             $sale = Sale::create([
@@ -41,6 +44,7 @@ class SaleService
                 'customer_id' => $data['customer_id'] ?? null,
                 'sale_date' => $data['sale_date'] ?? now()->toDateString(),
                 'total' => $total,
+                'discount_amount' => $discount,
                 'paid' => min($paid, $total),
                 'payment_method' => $data['payment_method'] ?? 'cash',
                 'note' => $data['note'] ?? null,

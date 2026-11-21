@@ -4,8 +4,11 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CashbookController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DayCloseController;
 use App\Http\Controllers\DeployController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfitLossController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
@@ -53,11 +56,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+    Route::get('/sales/export', [ExportController::class, 'salesCsv'])->name('sales.export');
     Route::get('/sales/create', [SaleController::class, 'create'])->name('sales.create');
     Route::get('/sales/{id}', [SaleController::class, 'show'])->name('sales.show');
 
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('customers.show');
+    Route::get('/customers/{id}/export', [ExportController::class, 'customerLedgerCsv'])->name('customers.export');
 
     Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
     Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
@@ -68,10 +73,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/transactions/export', [ExportController::class, 'transactionsCsv'])->name('transactions.export');
 
     Route::get('/cashbook', [CashbookController::class, 'index'])->name('cashbook.index');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    Route::get('/day-close', [DayCloseController::class, 'index'])->name('day-close.index');
+    Route::get('/profit-loss', [ProfitLossController::class, 'index'])->name('profit-loss.index');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');

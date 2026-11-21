@@ -41,10 +41,30 @@ class DashboardController extends Controller
             ->take(8)
             ->get();
 
+        // One-line insight for today.
+        $todayCollections = (float) $business->payments()
+            ->where('direction', 'in')
+            ->whereDate('date', $today)
+            ->sum('amount');
+        $topProduct = $todaySales->flatMap->items
+            ->groupBy('product_id')
+            ->map(fn ($items) => ['qty' => (float) $items->sum('qty'), 'name' => $items->first()->product->name ?? ''])
+            ->sortByDesc('qty')
+            ->first();
+        $biggestDueCustomer = $business->customers()->get()
+            ->map(fn ($c) => ['name' => $c->name, 'due' => $c->dueAmount()])
+            ->filter(fn ($c) => $c['due'] > 0)
+            ->sortByDesc('due')
+            ->first();
+        $insight = 'আজ '.Hisab::money($todaySaleTotal).' বিক্রি, '.Hisab::money($todayCollections).' আদায়'
+            .($topProduct ? ', সবচেয়ে বেশি বিক্রি '.$topProduct['name'].' ('.(float) $topProduct['qty'].'টি)' : '')
+            .($biggestDueCustomer ? '। সবচেয়ে বেশি বাকি '.$biggestDueCustomer['name'].'-এর — '.Hisab::money($biggestDueCustomer['due']) : '');
+
         return view('dashboard', compact(
             'business', 'todaySales', 'todaySaleTotal', 'todayProfit',
             'todayExpense', 'todayPurchase', 'cash', 'customerDue',
-            'supplierDue', 'lowStock', 'recentSales'
+            'supplierDue', 'lowStock', 'recentSales', 'todayCollections',
+            'insight'
         ));
     }
 }

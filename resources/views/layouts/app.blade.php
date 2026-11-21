@@ -4,13 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>@yield('title', 'হিসাব') — হিসাব</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 @livewireStyles
 </head>
 <body>
 <header class="site">
   <div class="header-inner">
-    <a class="brand" href="{{ route('dashboard') }}">হিসাব<small>দোকানের হিসাব-নিকাশ</small></a>
+    <a class="brand" href="{{ route('dashboard') }}"><span class="brand-mark"><i>৳</i></span><span>হিসাব<small>দোকানের হিসাব-নিকাশ</small></span></a>
     @auth
       @php($biz = auth()->user()->business)
       @if($biz)
@@ -28,7 +31,9 @@
     <a href="{{ route('products.index') }}" class="{{ request()->routeIs('products.*') ? 'active' : '' }}">মজুদ</a>
     <a href="{{ route('transactions.index') }}" class="{{ request()->routeIs('transactions.*') ? 'active' : '' }}">আয়-ব্যয়</a>
     <a href="{{ route('cashbook.index') }}" class="{{ request()->routeIs('cashbook.*') ? 'active' : '' }}">ক্যাশ বই</a>
+    <a href="{{ route('day-close.index') }}" class="{{ request()->routeIs('day-close.*') ? 'active' : '' }}">দিন শেষ</a>
     <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">রিপোর্ট</a>
+    <a href="{{ route('profit-loss.index') }}" class="{{ request()->routeIs('profit-loss.*') ? 'active' : '' }}">লাভ-ক্ষতি</a>
     <a href="{{ route('settings.index') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">সেটিংস</a>
     <a href="#" onclick="event.preventDefault();document.getElementById('logout-form').submit();">লগআউট</a>
   </nav>

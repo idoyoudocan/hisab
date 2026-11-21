@@ -17,6 +17,7 @@ class SaleForm extends Component
     public string $payment_method = 'cash';
     public string $note = '';
     public float $paid = 0;
+    public float $discount = 0;
     public array $rows = [];
 
     public function mount(): void
@@ -52,7 +53,7 @@ class SaleForm extends Component
     }
 
     #[Computed]
-    public function total(): float
+    public function subtotal(): float
     {
         $total = 0.0;
         foreach ($this->rows as $row) {
@@ -63,9 +64,36 @@ class SaleForm extends Component
     }
 
     #[Computed]
+    public function total(): float
+    {
+        $discount = max(0, min((float) $this->discount, $this->subtotal));
+
+        return round($this->subtotal - $discount, 2);
+    }
+
+    #[Computed]
     public function due(): float
     {
         return round($this->total - (float) $this->paid, 2);
+    }
+
+    /** Credit-limit warning when this sale would push the customer over their limit. */
+    #[Computed]
+    public function creditWarning(): ?string
+    {
+        if ($this->customer_id === '' || $this->due() <= 0) {
+            return null;
+        }
+        $customer = Business::find($this->businessId)?->customers()->find($this->customer_id);
+        if (! $customer || $customer->credit_limit === null || (float) $customer->credit_limit <= 0) {
+            return null;
+        }
+        $projected = round($customer->dueAmount() + $this->due(), 2);
+        if ($projected <= (float) $customer->credit_limit) {
+            return null;
+        }
+
+        return 'সতর্কতা: '.$customer->name.'-এর বাকি '.Hisab::money($projected).' হবে, যা ক্রেডিট সীমা '.Hisab::money($customer->credit_limit).' ছাড়িয়ে যাবে। বিক্রি করা যাবে, তবে আদায়ের কথা মনে রাখবেন।';
     }
 
     public function save()
@@ -77,6 +105,7 @@ class SaleForm extends Component
             'sale_date' => ['required', 'date'],
             'payment_method' => ['required', 'string'],
             'paid' => ['required', 'numeric', 'min:0', 'max:'.$this->total],
+            'discount' => ['nullable', 'numeric', 'min:0', 'max:'.$this->subtotal],
             'rows' => ['required', 'array', 'min:1'],
             'rows.*.product_id' => ['required', Rule::exists('products', 'id')->where('business_id', $business->id)],
             'rows.*.qty' => ['required', 'numeric', 'min:0.01'],
@@ -84,12 +113,14 @@ class SaleForm extends Component
         ], [
             'rows.*.product_id.required' => 'প্রতিটি লাইনে মাল বাছুন।',
             'paid.max' => 'পরিশোধ মোট টাকার বেশি হতে পারবে না।',
+            'discount.max' => 'ছাড় মোট টাকার বেশি হতে পারবে না।',
         ]);
 
         $sale = SaleService::createSale($business, [
             'customer_id' => $this->customer_id ?: null,
             'sale_date' => $this->sale_date,
             'paid' => $this->paid,
+            'discount_amount' => $this->discount,
             'payment_method' => $this->payment_method,
             'note' => $this->note ?: null,
         ], $this->rows);

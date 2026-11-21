@@ -1,7 +1,10 @@
 @extends('layouts.app')
 @section('title', 'আয়-ব্যয়')
 @section('content')
-<h1>আয়-ব্যয়</h1>
+<div class="flex space-between">
+  <h1>আয়-ব্যয়</h1>
+  <a class="btn ghost sm" href="{{ route('transactions.export', request()->only(['month', 'type', 'scope'])) }}">↓ CSV এক্সপোর্ট</a>
+</div>
 <div class="stat-grid">
   <div class="stat green"><div class="label">এই মাসের আয়</div><div class="value">{{ \App\Support\Hisab::money($monthIncome) }}</div></div>
   <div class="stat red"><div class="label">এই মাসের খরচ</div><div class="value">{{ \App\Support\Hisab::money($monthExpense) }}</div></div>

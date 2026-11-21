@@ -2,6 +2,12 @@
 @section('title', 'রিপোর্ট')
 @section('content')
 <h1>রিপোর্ট</h1>
+<div class="tabs">
+  <a href="{{ route('reports.index') }}" class="active">সারাংশ</a>
+  <a href="{{ route('profit-loss.index') }}">লাভ-ক্ষতির বিবরণী</a>
+  <a href="{{ route('day-close.index') }}">দিনের হিসাব</a>
+  <a href="{{ route('cashbook.index') }}">ক্যাশ বই</a>
+</div>
 <div class="card">
   <form method="GET" class="field-row two">
     <div><label>শুরু</label><input type="date" name="from" value="{{ $from }}"></div>

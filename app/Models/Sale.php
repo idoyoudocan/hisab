@@ -12,7 +12,7 @@ class Sale extends Model
 
     protected $fillable = [
         'business_id', 'customer_id', 'sale_date',
-        'total', 'paid', 'payment_method', 'note',
+        'total', 'discount_amount', 'paid', 'payment_method', 'note',
     ];
 
     protected function casts(): array
@@ -20,6 +20,7 @@ class Sale extends Model
         return [
             'sale_date' => 'date',
             'total' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'paid' => 'decimal:2',
         ];
     }
@@ -27,21 +28,32 @@ class Sale extends Model
     public function customer(): BelongsTo { return $this->belongsTo(Customer::class); }
     public function items(): HasMany { return $this->hasMany(SaleItem::class); }
 
+    /** Sum of line totals before discount. total = subtotal − discount. */
+    public function subtotalAmount(): float
+    {
+        return round((float) $this->items->sum('total'), 2);
+    }
+
     /** Due on this sale itself (collections are tracked at customer level). */
     public function dueAmount(): float
     {
         return round((float) $this->total - (float) $this->paid, 2);
     }
 
-    /** Approx profit: (sale price − purchase price) × qty, using current costs. */
-    public function profitAmount(): float
+    /** Cost of goods sold: purchase price × qty, using current costs. */
+    public function cogsAmount(): float
     {
-        $profit = 0.0;
+        $cost = 0.0;
         foreach ($this->items as $item) {
-            $cost = (float) ($item->product->purchase_price ?? 0);
-            $profit += ((float) $item->price - $cost) * (float) $item->qty;
+            $cost += (float) ($item->product->purchase_price ?? 0) * (float) $item->qty;
         }
 
-        return round($profit, 2);
+        return round($cost, 2);
+    }
+
+    /** Profit after discount: total (subtotal − discount) − cost of goods. */
+    public function profitAmount(): float
+    {
+        return round((float) $this->total - $this->cogsAmount(), 2);
     }
 }

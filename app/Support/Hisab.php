@@ -106,6 +106,81 @@ class Hisab
         return ['cash' => 'নগদ', 'bkash' => 'বিকাশ', 'nagad' => 'নগদ (নগদ)', 'bank' => 'ব্যাংক'];
     }
 
+    /** Cash balance just before a date (opening cash + movements before it). */
+    public static function cashBalanceBefore(Business $business, string $date): float
+    {
+        $bid = $business->id;
+        $balance = (float) $business->opening_cash;
+        $balance += (float) Sale::where('business_id', $bid)->where('sale_date', '<', $date)->sum('paid');
+        $balance += (float) Payment::where('business_id', $bid)->where('direction', 'in')->where('date', '<', $date)->sum('amount');
+        $balance += (float) Transaction::where('business_id', $bid)->where('type', 'income')->where('date', '<', $date)->sum('amount');
+        $balance -= (float) Purchase::where('business_id', $bid)->where('purchase_date', '<', $date)->sum('paid');
+        $balance -= (float) Payment::where('business_id', $bid)->where('direction', 'out')->where('date', '<', $date)->sum('amount');
+        $balance -= (float) Transaction::where('business_id', $bid)->where('type', 'expense')->where('date', '<', $date)->sum('amount');
+
+        return round($balance, 2);
+    }
+
+    /** Normalize a Bangladeshi phone number to wa.me format (8801XXXXXXXXX). */
+    public static function whatsappNumber(?string $phone): ?string
+    {
+        if ($phone === null) {
+            return null;
+        }
+        $digits = preg_replace('/\D+/', '', $phone) ?? '';
+        if ($digits === '') {
+            return null;
+        }
+        if (str_starts_with($digits, '880')) {
+            return $digits;
+        }
+        if (str_starts_with($digits, '01')) {
+            return '880'.substr($digits, 1);
+        }
+        if (str_starts_with($digits, '1') && strlen($digits) === 10) {
+            return '880'.$digits;
+        }
+
+        return $digits;
+    }
+
+    /** wa.me link with a prefilled message, or null when no usable number. */
+    public static function whatsappUrl(?string $phone, string $message): ?string
+    {
+        $number = self::whatsappNumber($phone);
+
+        return $number
+            ? 'https://wa.me/'.$number.'?text='.rawurlencode($message)
+            : null;
+    }
+
+    /** Polite Bangla due-reminder text for a customer. */
+    public static function dueReminderText(Business $business, string $customerName, float $due): string
+    {
+        return 'আসসালামু আলাইকুম '.$customerName.', '.$business->name.' থেকে বলছি। আপনার বাকি '.self::money($due).' রয়েছে। অনুগ্রহ করে পরিশোধ করবেন। ধন্যবাদ।';
+    }
+
+    /** Shareable receipt text for a sale (WhatsApp, no fixed recipient). */
+    public static function receiptShareUrl(Sale $sale, Business $business): string
+    {
+        $lines = [
+            $business->name.' — রসিদ #'.$sale->id,
+            'তারিখ: '.$sale->sale_date->format('d M Y'),
+            'কাস্টমার: '.($sale->customer?->name ?? 'খুচরা কাস্টমার'),
+        ];
+        foreach ($sale->items as $item) {
+            $lines[] = $item->product->name.' × '.(float) $item->qty.' — '.self::money($item->total);
+        }
+        if ((float) $sale->discount_amount > 0) {
+            $lines[] = 'ছাড়: − '.self::money($sale->discount_amount);
+        }
+        $lines[] = 'মোট: '.self::money($sale->total);
+        $lines[] = 'পরিশোধ: '.self::money($sale->paid);
+        $lines[] = 'বাকি: '.self::money($sale->dueAmount());
+
+        return 'https://wa.me/?text='.rawurlencode(implode("\n", $lines));
+    }
+
     public static function units(): array
     {
         return ['পিস', 'কেজি', 'গ্রাম', 'লিটার', 'প্যাকেট', 'বস্তা', 'ডজন'];

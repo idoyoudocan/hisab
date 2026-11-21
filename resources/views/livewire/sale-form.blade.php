@@ -53,6 +53,13 @@
       </select>
     </div>
     <div>
+      <label>ছাড় (টাকা)</label>
+      <input type="number" step="0.01" min="0" wire:model.live="discount">
+      @error('discount')<div class="error">{{ $message }}</div>@enderror
+    </div>
+  </div>
+  <div class="field-row two">
+    <div>
       <label>পরিশোধ (টাকা)</label>
       <input type="number" step="0.01" min="0" wire:model.live="paid">
       @error('paid')<div class="error">{{ $message }}</div>@enderror
@@ -61,8 +68,14 @@
   <label>নোট</label>
   <input type="text" wire:model="note" placeholder="ঐচ্ছিক">
 
-  <div class="total-row"><span>মোট</span><span>{{ \App\Support\Hisab::money($this->total) }}</span></div>
-  <div class="list-row"><span>পরিশোধ</span><span>{{ \App\Support\Hisab::money($paid) }}</span></div>
+  @if($this->creditWarning)
+    <div class="warn-box">⚠️ {{ $this->creditWarning }}</div>
+  @endif
+
+  <div class="list-row"><span>উপমোট</span><span class="num">{{ \App\Support\Hisab::money($this->subtotal) }}</span></div>
+  <div class="list-row"><span>ছাড়</span><span class="num">− {{ \App\Support\Hisab::money($discount) }}</span></div>
+  <div class="total-row"><span>মোট</span><span class="num">{{ \App\Support\Hisab::money($this->total) }}</span></div>
+  <div class="list-row"><span>পরিশোধ</span><span class="num">{{ \App\Support\Hisab::money($paid) }}</span></div>
   <div class="list-row"><span>বাকি থাকবে</span><span>@if($this->due > 0)<span class="badge amber">{{ \App\Support\Hisab::money($this->due) }}</span>@else <span class="badge green">৳০</span>@endif</span></div>
 
   <button type="button" class="btn block mt" wire:click="save" wire:loading.attr="disabled">বিক্রি সংরক্ষণ করুন</button>
