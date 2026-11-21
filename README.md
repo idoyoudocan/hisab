@@ -1,0 +1,110 @@
+# হিসাব (Hisab) — দোকানের হিসাব-নিকাশ SaaS
+
+দোকানের বিক্রি, বাকি, কেনাকাটা, মজুদ, ক্যাশ আর আয়-ব্যয় — সব এক জায়গায়।
+মোবাইল-ফার্স্ট, বাংলা ভাষায়, টাকায় (৳)।
+
+**স্ট্যাক:** Laravel 13 · Livewire 4 · PHP 8.3 · SQLite (ডিফল্ট) / MySQL · কোনো Node/Vite বিল্ড লাগে না —
+স্টাইল একটাই হাতে লেখা CSS ফাইল (`public/css/app.css`)।
+
+## ফিচার
+
+- **ড্যাশবোর্ড** — আজকের বিক্রি, আজকের লাভ (আনুমানিক), ক্যাশে কত টাকা, মোট বাকি,
+  আজকের খরচ, সাম্প্রতিক বিক্রি, কম স্টক সতর্কতা।
+- **বিক্রি** — কাস্টমার বাছুন বা খুচরা বিক্রি, মালের লাইন যোগ করুন, লাইভ মোট/বাকি,
+  বিক্রিতে স্টক কমে যায়, প্রিন্ট-বান্ধব রসিদ।
+- **বাকি** — প্রতিটি কাস্টমারের বাকির পরিমাণ, খতিয়ান (বিক্রি + আদায়), "টাকা আদায়" ফর্ম।
+- **কেনাকাটা** — সাপ্লায়ার, মালের লাইন, পরিশোধ; কেনায় স্টক বাড়ে; সাপ্লায়ার খতিয়ান + পরিশোধ ফর্ম।
+- **মজুদ** — মালের CRUD, কেনা/বিক্রয় দাম, স্টক, কম স্টক সতর্কতা।
+- **আয়-ব্যয়** — আয়/ব্যয় এন্ট্রি, খাত (বিক্রয়, ভাড়া, বেতন, বিদ্যুৎ, যাতায়াত, ব্যক্তিগত…),
+  দোকান/ব্যক্তিগত আলাদা, মাসিক মোট।
+- **ক্যাশ বই** — সব ক্যাশ লেনদেনের কালানুক্রমিক তালিকা, চলমান ব্যালান্সসহ।
+- **রিপোর্ট** — দিন/মাসের বিক্রি, কেনাকাটা, খরচ, লাভের সারাংশ + দিনভিত্তিক টেবিল।
+- **সেটিংস** — দোকানের নাম/ফোন/ঠিকানা/খোলা ক্যাশ, পাসওয়ার্ড বদল।
+
+## ক্যাশের হিসাব (derived — কোথাও একক সংখ্যা হিসেবে সংরক্ষিত হয় না)
+
+```
+ক্যাশ = খোলা ক্যাশ + বিক্রি থেকে পাওয়া + বাকি আদায় + অন্যান্য আয়
+      − কেনাকাটায় পরিশোধ − সাপ্লায়ারকে পরিশোধ − খরচ
+```
+
+ব্যক্তিগত খরচও ক্যাশ থেকে যায় বলে তা ক্যাশের হিসাবে ধরা হয়; রিপোর্টে
+দোকান ও ব্যক্তিগত খরচ আলাদা করে দেখানো হয়।
+
+## SaaS / মাল্টি-টেন্যান্ট
+
+- প্রতিটি রেজিস্ট্রেশনে একটি `business` (দোকান) তৈরি হয় — নাম ডিফল্ট "আমার দোকান",
+  প্ল্যান `trial`, ১৪ দিনের ফ্রি ট্রায়াল, ডিফল্ট খাতগুলো অটো-সিড হয়।
+- `products`, `customers`, `suppliers`, `sales`, `purchases`, `payments`, `transactions`
+  — সব রেকর্ডে `business_id` আছে এবং সব কোয়েরি বর্তমান ব্যবসায় স্কোপ করা হয়।
+  অন্য ব্যবসার রেকর্ড খুলতে গেলে 404 আসে (টেস্টে যাচাই করা)।
+
+### প্ল্যান
+
+| প্ল্যান | মূল্য | মেয়াদ |
+|---|---|---|
+| ফ্রি ট্রায়াল | ৳০ | ১৪ দিন, সব ফিচার |
+| প্রো | ৳৩০০/মাস | সব ফিচার, আনলিমিটেড |
+
+## লোকালি চালানো
+
+```sh
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan serve
+```
+
+তারপর http://127.0.0.1:8000 খুলে রেজিস্টার করুন। ডিফল্ট ডাটাবেস SQLite
+(`database/database.sqlite`), মেইল `log` ড্রাইভার (পাসওয়ার্ড রিসেট লিংক
+`storage/logs/laravel.log`-এ যায়)।
+
+## টেস্ট
+
+```sh
+php artisan test
+# বা: php vendor/bin/phpunit
+```
+
+`tests/Feature/HisabTest.php`-এ ১০টি টেস্ট: রেজিস্ট্রেশনে ব্যবসা তৈরি, বিক্রিতে
+স্টক কমা ও বাকি, আদায়ে বাকি কমা, কেনায় স্টক বাড়া, টেন্যান্ট আইসোলেশন,
+ড্যাশবোর্ডের আজকের সংখ্যা, ক্যাশের derived হিসাব, Livewire বিক্রি ফর্ম,
+ডিপ্লয় রুটের 404, পাবলিক পেজ।
+
+## সাবডোমেইনে ডিপ্লয় (hisab.troxela.store, cPanel — টার্মিনাল নেই)
+
+1. সাবডোমেইন `hisab.troxela.store` বানান, ডকুমেন্ট রুট `public_html/hisab`
+   (বা আলাদা ফোল্ডার) — Laravel-এর `public/` ফোল্ডারকে ওয়েব রুট করুন।
+2. প্রজেক্টের ফাইলগুলো সার্ভারে আপলোড করুন, `.env` সাজান:
+   `APP_URL=https://hisab.troxela.store`, ডাটাবেস (MySQL হলে `DB_*`),
+   `MAIL_MAILER=log` (আপাতত), আর একটি লম্বা র‍্যান্ডম `DEPLOY_TOKEN` বসান।
+3. মাইগ্রেশন চালাতে টার্মিনাল লাগবে না — সুরক্ষিত রুট আছে:
+
+```sh
+curl -X POST https://hisab.troxela.store/deploy/migrate \
+  -H "X-Deploy-Token: আপনার-DEPLOY_TOKEN"
+```
+
+`DEPLOY_TOKEN` খালি থাকলে রুটটি 404 দেয়। টোকেন মিললে `migrate --force` চলে
+এবং JSON `{"ok": true}` ফেরত আসে। নতুন কোড আপলোডের পর এই রিকোয়েস্ট দিলেই
+ডাটাবেস আপডেট হয়ে যাবে।
+
+## গঠন
+
+```
+app/Models      Business, Product, Customer, Supplier, Sale(+Item),
+                Purchase(+Item), Payment, Transaction, Category
+app/Services    SaleService (স্টক কমায়), PurchaseService (স্টক বাড়ায়),
+                PaymentService (বাকির বেশি নিতে দেয় না)
+app/Support     Hisab::cashBalance / cashBreakdown / money() / paymentMethods()
+app/Livewire    SaleForm, PurchaseForm, ProductManager, CustomerManager,
+                SupplierManager, CollectionForm, SupplierPaymentForm,
+                TransactionManager
+app/Http/Controllers  Auth, Dashboard, Sale, Customer, Purchase, Supplier,
+                Product, Transaction, Cashbook, Report, Settings, Deploy
+resources/views  layouts/app, welcome (ল্যান্ডিং), auth/*, dashboard,
+                sales, customers, purchases, suppliers, products,
+                transactions, cashbook, reports, settings
+public/css/app.css   একটাই মোবাইল-ফার্স্ট CSS
+```
