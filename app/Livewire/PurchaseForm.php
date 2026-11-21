@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Business;
+use App\Models\Purchase;
 use App\Services\PurchaseService;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -68,7 +69,27 @@ class PurchaseForm extends Component
     public function save()
     {
         $business = Business::findOrFail($this->businessId);
+        $purchase = $this->createPurchase($business);
 
+        return redirect()->route('purchases.show', $purchase)->with('status', 'কেনাকাটা সংরক্ষিত হয়েছে।');
+    }
+
+    /** Save and stay on the page with a fresh form for the next purchase. */
+    public function saveAndAddAnother(): void
+    {
+        $business = Business::findOrFail($this->businessId);
+        $this->createPurchase($business);
+
+        $this->supplier_id = '';
+        $this->purchase_date = now()->toDateString();
+        $this->note = '';
+        $this->paid = 0;
+        $this->rows = [['product_id' => '', 'qty' => 1, 'price' => 0]];
+        session()->flash('status', 'কেনাকাটা সংরক্ষিত হয়েছে — পরের কেনাকাটা লিখুন।');
+    }
+
+    private function createPurchase(Business $business): Purchase
+    {
         $this->validate([
             'supplier_id' => ['nullable', Rule::exists('suppliers', 'id')->where('business_id', $business->id)],
             'purchase_date' => ['required', 'date'],
@@ -89,7 +110,7 @@ class PurchaseForm extends Component
             'note' => $this->note ?: null,
         ], $this->rows);
 
-        return redirect()->route('purchases.show', $purchase)->with('status', 'কেনাকাটা সংরক্ষিত হয়েছে।');
+        return $purchase;
     }
 
     public function render()

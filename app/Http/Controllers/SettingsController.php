@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Business;
 use App\Support\Hisab;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
@@ -23,12 +25,16 @@ class SettingsController extends Controller
         $business = Hisab::requireBusiness();
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
-            'type' => ['nullable', 'string', 'max:100'],
+            'type' => ['nullable', 'string', Rule::in(Business::TYPES)],
             'phone' => ['nullable', 'string', 'max:20'],
             'address' => ['nullable', 'string', 'max:255'],
             'opening_cash' => ['required', 'numeric', 'min:0'],
         ]);
+        $wasRecharge = $business->type === Business::TYPE_RECHARGE;
         $business->update($data);
+        if (! $wasRecharge && $business->type === Business::TYPE_RECHARGE) {
+            Business::seedRechargeCategories($business);
+        }
 
         return back()->with('status', 'সেটিংস সংরক্ষিত হয়েছে।');
     }

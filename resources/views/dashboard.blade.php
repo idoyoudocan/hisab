@@ -24,6 +24,26 @@
 
 <div class="insight"><strong>আজকের সারাংশ</strong> — {{ $insight }}।</div>
 
+@if(!$checklistDone)
+<div class="card checklist">
+  <p class="section-label">শুরু করুন</p>
+  <h2>তিন ধাপে দোকান চালু করুন</h2>
+  <div class="list-row">
+    <span>@if($checklist['products']) ✅ @else 1️⃣ @endif মাল যোগ করুন</span>
+    @if($checklist['products'])<span class="badge green">হয়ে গেছে</span>@else<a href="{{ route('products.index') }}">যোগ করুন →</a>@endif
+  </div>
+  <div class="list-row">
+    <span>@if($checklist['sales']) ✅ @else 2️⃣ @endif প্রথম বিক্রি করুন</span>
+    @if($checklist['sales'])<span class="badge green">হয়ে গেছে</span>@else<a href="{{ route('sales.create') }}">বিক্রি করুন →</a>@endif
+  </div>
+  <div class="list-row">
+    <span>@if($checklist['cashCount']) ✅ @else 3️⃣ @endif ক্যাশ মেলান</span>
+    @if($checklist['cashCount'])<span class="badge green">হয়ে গেছে</span>@else<a href="{{ route('cash-count.index') }}">মেলান →</a>@endif
+  </div>
+  <p class="hint">তিনটি শেষ হলেই এই কার্ডটি আর দেখাবে না।</p>
+</div>
+@endif
+
 <div class="stat-grid">
   <div class="stat">
     <span class="ic-chip">🛒</span>
@@ -51,11 +71,13 @@
   </div>
 </div>
 
-<div class="flex" style="margin-bottom:16px">
-  <a class="btn dark" href="{{ route('sales.create') }}">+ নতুন বিক্রি</a>
-  <a class="btn ghost" href="{{ route('purchases.create') }}">+ নতুন কেনাকাটা</a>
-  <a class="btn ghost" href="{{ route('transactions.index') }}">+ আয়-ব্যয়</a>
-  <a class="btn ghost" href="{{ route('profit-loss.index') }}">লাভ-ক্ষতি</a>
+<div class="quick-actions">
+  <a class="btn dark qa" href="{{ route('sales.create') }}">+ বিক্রি</a>
+  <a class="btn qa" href="{{ route('transactions.index') }}">+ খরচ</a>
+  <a class="btn ghost qa" href="{{ route('customers.index') }}">+ আদায়</a>
+  <a class="btn ghost qa" href="{{ route('cash-count.index') }}">💵 ক্যাশ মেলান</a>
+  <a class="btn ghost qa" href="{{ route('money.index') }}">🏦 টাকার হিসাব</a>
+  <a class="btn ghost qa" href="{{ route('capital.index') }}">💰 আমার মূলধন</a>
 </div>
 
 @if($lowStock->isNotEmpty())
@@ -103,6 +125,6 @@
   <div class="list-row"><span>সাপ্লায়ারকে পরিশোধ</span><span class="num">− {{ \App\Support\Hisab::money($cash['supplier_payments']) }}</span></div>
   <div class="list-row"><span>খরচ</span><span class="num">− {{ \App\Support\Hisab::money($cash['expenses']) }}</span></div>
   <div class="total-row"><span>ক্যাশে আছে</span><span class="num">{{ \App\Support\Hisab::money($cash['balance']) }}</span></div>
-  <a href="{{ route('cashbook.index') }}">ক্যাশ বই দেখুন →</a>
+  <a href="{{ route('cashbook.index') }}">ক্যাশ বই দেখুন →</a> · <a href="{{ route('money.index') }}">টাকার হিসাব দেখুন →</a>
 </div>
 @endsection

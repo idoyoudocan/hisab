@@ -33,6 +33,9 @@
     <a href="{{ route('transactions.index') }}" class="{{ request()->routeIs('transactions.*') ? 'active' : '' }}">আয়-ব্যয়</a>
     <a href="{{ route('cashbook.index') }}" class="{{ request()->routeIs('cashbook.*') ? 'active' : '' }}">ক্যাশ বই</a>
     <a href="{{ route('day-close.index') }}" class="{{ request()->routeIs('day-close.*') ? 'active' : '' }}">দিন শেষ</a>
+    <a href="{{ route('money.index') }}" class="{{ request()->routeIs('money.*') ? 'active' : '' }}">টাকার হিসাব</a>
+    <a href="{{ route('capital.index') }}" class="{{ request()->routeIs('capital.*') ? 'active' : '' }}">মূলধন</a>
+    <a href="{{ route('cash-count.index') }}" class="{{ request()->routeIs('cash-count.*') ? 'active' : '' }}">ক্যাশ মেলান</a>
     <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">রিপোর্ট</a>
     <a href="{{ route('profit-loss.index') }}" class="{{ request()->routeIs('profit-loss.*') ? 'active' : '' }}">লাভ-ক্ষতি</a>
     <a href="{{ route('settings.index') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">সেটিংস</a>
@@ -56,7 +59,7 @@
   <a href="{{ route('sales.create') }}" class="{{ request()->routeIs('sales.create') ? 'active' : '' }}"><span class="ic">🛒</span>বিক্রি</a>
   <a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}"><span class="ic">📒</span>বাকি</a>
   <a href="{{ route('purchases.create') }}" class="{{ request()->routeIs('purchases.create') ? 'active' : '' }}"><span class="ic">📦</span>কেনাকাটা</a>
-  <a href="{{ route('transactions.index') }}" class="{{ request()->routeIs('transactions.*') || request()->routeIs('products.*') || request()->routeIs('cashbook.*') || request()->routeIs('reports.*') || request()->routeIs('settings.*') ? 'active' : '' }}"><span class="ic">⋯</span>আরও</a>
+  <a href="{{ route('transactions.index') }}" class="{{ request()->routeIs('transactions.*') || request()->routeIs('products.*') || request()->routeIs('cashbook.*') || request()->routeIs('reports.*') || request()->routeIs('settings.*') || request()->routeIs('money.*') || request()->routeIs('capital.*') || request()->routeIs('cash-count.*') ? 'active' : '' }}"><span class="ic">⋯</span>আরও</a>
 </nav>
 @endauth
 @include('partials.pwa-banner')

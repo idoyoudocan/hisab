@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Business;
+use App\Models\Sale;
 use App\Services\SaleService;
 use App\Support\Hisab;
 use Illuminate\Validation\Rule;
@@ -99,7 +100,29 @@ class SaleForm extends Component
     public function save()
     {
         $business = Business::findOrFail($this->businessId);
+        $sale = $this->createSale($business);
 
+        return redirect()->route('sales.show', $sale)->with('status', 'বিক্রি সংরক্ষিত হয়েছে।');
+    }
+
+    /** Save and stay on the page with a fresh form for the next sale. */
+    public function saveAndAddAnother(): void
+    {
+        $business = Business::findOrFail($this->businessId);
+        $this->createSale($business);
+
+        $this->customer_id = '';
+        $this->sale_date = now()->toDateString();
+        $this->payment_method = 'cash';
+        $this->note = '';
+        $this->paid = 0;
+        $this->discount = 0;
+        $this->rows = [['product_id' => '', 'qty' => 1, 'price' => 0]];
+        session()->flash('status', 'বিক্রি সংরক্ষিত হয়েছে — পরের বিক্রি লিখুন।');
+    }
+
+    private function createSale(Business $business): Sale
+    {
         $this->validate([
             'customer_id' => ['nullable', Rule::exists('customers', 'id')->where('business_id', $business->id)],
             'sale_date' => ['required', 'date'],
@@ -125,7 +148,7 @@ class SaleForm extends Component
             'note' => $this->note ?: null,
         ], $this->rows);
 
-        return redirect()->route('sales.show', $sale)->with('status', 'বিক্রি সংরক্ষিত হয়েছে।');
+        return $sale;
     }
 
     public function render()

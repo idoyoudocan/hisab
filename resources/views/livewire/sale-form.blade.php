@@ -56,6 +56,7 @@
       <label>ছাড় (টাকা)</label>
       <input type="number" step="0.01" min="0" wire:model.live="discount">
       @error('discount')<div class="error">{{ $message }}</div>@enderror
+      <p class="hint">ছাড় বিলের মোট থেকে বাদ যাবে — বাকি আর লাভের হিসাবও সেই অনুযায়ী হবে।</p>
     </div>
   </div>
   <div class="field-row two">
@@ -79,4 +80,6 @@
   <div class="list-row"><span>বাকি থাকবে</span><span>@if($this->due > 0)<span class="badge amber">{{ \App\Support\Hisab::money($this->due) }}</span>@else <span class="badge green">৳০</span>@endif</span></div>
 
   <button type="button" class="btn block mt" wire:click="save" wire:loading.attr="disabled">বিক্রি সংরক্ষণ করুন</button>
+  <button type="button" class="btn ghost block mt" wire:click="saveAndAddAnother" wire:loading.attr="disabled">সংরক্ষণ করে আরেকটি বিক্রি করুন</button>
+  <p class="hint">আরেকটি করলে এই পাতাতেই থাকবেন — ফর্ম খালি হয়ে পরের বিক্রির জন্য তৈরি হবে।</p>
 </div>

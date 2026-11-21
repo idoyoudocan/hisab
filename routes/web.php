@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CapitalController;
 use App\Http\Controllers\CashbookController;
+use App\Http\Controllers\CashCountController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DayCloseController;
 use App\Http\Controllers\DeployController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\MoneyAccountController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfitLossController;
 use App\Http\Controllers\PurchaseController;
@@ -81,6 +84,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/day-close', [DayCloseController::class, 'index'])->name('day-close.index');
     Route::get('/profit-loss', [ProfitLossController::class, 'index'])->name('profit-loss.index');
+
+    Route::get('/money-accounts', [MoneyAccountController::class, 'index'])->name('money.index');
+    Route::get('/cash-count', [CashCountController::class, 'index'])->name('cash-count.index');
+    Route::get('/capital', [CapitalController::class, 'index'])->name('capital.index');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');

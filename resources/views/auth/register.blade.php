@@ -17,7 +17,11 @@
       </div>
       <div>
         <label for="business_type">দোকানের ধরন</label>
-        <input id="business_type" type="text" name="business_type" value="{{ old('business_type') }}" placeholder="যেমন: মুদি দোকান">
+        <select id="business_type" name="business_type" required>
+          @foreach(\App\Models\Business::TYPES as $t)
+            <option value="{{ $t }}" @selected(old('business_type', 'মুদি দোকান') === $t)>{{ $t }}</option>
+          @endforeach
+        </select>
       </div>
     </div>
     <label for="phone">মোবাইল নম্বর</label>

@@ -60,11 +60,19 @@ class DashboardController extends Controller
             .($topProduct ? ', সবচেয়ে বেশি বিক্রি '.$topProduct['name'].' ('.(float) $topProduct['qty'].'টি)' : '')
             .($biggestDueCustomer ? '। সবচেয়ে বেশি বাকি '.$biggestDueCustomer['name'].'-এর — '.Hisab::money($biggestDueCustomer['due']) : '');
 
+        // First-run checklist: disappears once all three are done.
+        $checklist = [
+            'products' => $business->products()->exists(),
+            'sales' => $business->sales()->exists(),
+            'cashCount' => $business->cashCounts()->exists(),
+        ];
+        $checklistDone = $checklist['products'] && $checklist['sales'] && $checklist['cashCount'];
+
         return view('dashboard', compact(
             'business', 'todaySales', 'todaySaleTotal', 'todayProfit',
             'todayExpense', 'todayPurchase', 'cash', 'customerDue',
             'supplierDue', 'lowStock', 'recentSales', 'todayCollections',
-            'insight'
+            'insight', 'checklist', 'checklistDone'
         ));
     }
 }

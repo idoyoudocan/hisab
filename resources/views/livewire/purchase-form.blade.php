@@ -62,4 +62,6 @@
   <div class="list-row"><span>বাকি থাকবে</span><span>@if($this->due > 0)<span class="badge amber">{{ \App\Support\Hisab::money($this->due) }}</span>@else <span class="badge green">৳০</span>@endif</span></div>
 
   <button type="button" class="btn block mt" wire:click="save" wire:loading.attr="disabled">কেনাকাটা সংরক্ষণ করুন</button>
+  <button type="button" class="btn ghost block mt" wire:click="saveAndAddAnother" wire:loading.attr="disabled">সংরক্ষণ করে আরেকটি কেনাকাটা করুন</button>
+  <p class="hint">আরেকটি করলে এই পাতাতেই থাকবেন — ফর্ম খালি হয়ে পরের কেনাকাটার জন্য তৈরি হবে।</p>
 </div>

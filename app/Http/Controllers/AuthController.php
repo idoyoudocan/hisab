@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Business;
+use App\Models\MoneyAccount;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -23,7 +25,7 @@ class AuthController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'business_name' => ['nullable', 'string', 'max:150'],
-            'business_type' => ['nullable', 'string', 'max:100'],
+            'business_type' => ['required', 'string', Rule::in(Business::TYPES)],
             'phone' => ['nullable', 'string', 'max:20'],
         ]);
 
@@ -37,13 +39,14 @@ class AuthController extends Controller
             $business = Business::create([
                 'user_id' => $user->id,
                 'name' => $data['business_name'] ?? 'আমার দোকান',
-                'type' => $data['business_type'] ?? null,
+                'type' => $data['business_type'],
                 'phone' => $data['phone'] ?? null,
                 'opening_cash' => 0,
                 'plan' => 'trial',
                 'trial_ends_at' => now()->addDays(14),
             ]);
             Business::seedCategories($business);
+            MoneyAccount::ensureRegister($business);
 
             return $user;
         });

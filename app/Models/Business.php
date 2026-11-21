@@ -8,6 +8,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Business extends Model
 {
+    /** Business types offered at registration and in settings. */
+    public const TYPES = [
+        'মুদি দোকান',
+        'ফার্মেসি',
+        'মোবাইল রিচার্জ ও লোড',
+        'কাপড়ের দোকান',
+        'ইলেকট্রনিক্স',
+        'হার্ডওয়্যার',
+        'রেস্টুরেন্ট / খাবার',
+        'কসমেটিকস',
+        'বই ও স্টেশনারি',
+        'অন্যান্য',
+    ];
+
+    public const TYPE_RECHARGE = 'মোবাইল রিচার্জ ও লোড';
+
     protected $fillable = [
         'user_id', 'name', 'type', 'phone', 'address',
         'opening_cash', 'plan', 'trial_ends_at',
@@ -34,6 +50,8 @@ class Business extends Model
     public function payments(): HasMany { return $this->hasMany(Payment::class); }
     public function transactions(): HasMany { return $this->hasMany(Transaction::class); }
     public function categories(): HasMany { return $this->hasMany(Category::class); }
+    public function moneyAccounts(): HasMany { return $this->hasMany(MoneyAccount::class); }
+    public function cashCounts(): HasMany { return $this->hasMany(CashCount::class); }
 
     public function isTrialActive(): bool
     {
@@ -58,6 +76,26 @@ class Business extends Model
         ];
 
         foreach ($defaults as [$name, $type, $scope]) {
+            Category::firstOrCreate(
+                ['business_id' => $business->id, 'name' => $name, 'type' => $type],
+                ['scope' => $scope]
+            );
+        }
+
+        if ($business->type === self::TYPE_RECHARGE) {
+            self::seedRechargeCategories($business);
+        }
+    }
+
+    /** Extra categories for recharge/load businesses. */
+    public static function seedRechargeCategories(self $business): void
+    {
+        $extras = [
+            ['রিচার্জ কমিশন', 'income', 'shop'],
+            ['সিম ব্যালেন্স কেনা', 'expense', 'shop'],
+        ];
+
+        foreach ($extras as [$name, $type, $scope]) {
             Category::firstOrCreate(
                 ['business_id' => $business->id, 'name' => $name, 'type' => $type],
                 ['scope' => $scope]

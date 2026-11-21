@@ -3,7 +3,9 @@
 namespace App\Support;
 
 use App\Models\Business;
+use App\Models\MoneyAccount;
 use App\Models\Payment;
+use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Sale;
 use App\Models\Transaction;
@@ -184,5 +186,58 @@ class Hisab
     public static function units(): array
     {
         return ['পিস', 'কেজি', 'গ্রাম', 'লিটার', 'প্যাকেট', 'বস্তা', 'ডজন'];
+    }
+
+    /** Cash-count note denominations, largest first. */
+    public static function denominations(): array
+    {
+        return [1000, 500, 200, 100, 50, 20, 10, 5, 2, 1];
+    }
+
+    /** Total value of stock at purchase price (stock × purchase_price). */
+    public static function stockValue(Business $business): float
+    {
+        $row = Product::where('business_id', $business->id)
+            ->selectRaw('COALESCE(SUM(stock * purchase_price), 0) as v')
+            ->first();
+
+        return round((float) ($row->v ?? 0), 2);
+    }
+
+    /** Sum of entered balances of one money-account type (register excluded). */
+    public static function accountTotal(Business $business, string $type): float
+    {
+        return round((float) MoneyAccount::where('business_id', $business->id)
+            ->where('type', $type)
+            ->sum('balance'), 2);
+    }
+
+    /**
+     * Total capital, computed live (never stored):
+     *   cash + bank + mobile banking + SIM + other accounts
+     *   + stock at purchase price + customer dues − supplier dues
+     */
+    public static function capitalBreakdown(Business $business): array
+    {
+        $cash = self::cashBalance($business);
+        $bank = self::accountTotal($business, MoneyAccount::TYPE_BANK);
+        $mobile = self::accountTotal($business, MoneyAccount::TYPE_MOBILE_BANKING);
+        $sim = self::accountTotal($business, MoneyAccount::TYPE_SIM);
+        $other = self::accountTotal($business, MoneyAccount::TYPE_OTHER);
+        $stock = self::stockValue($business);
+        $customerDue = self::totalCustomerDue($business);
+        $supplierDue = self::totalSupplierDue($business);
+
+        return [
+            'cash' => $cash,
+            'bank' => $bank,
+            'mobile_banking' => $mobile,
+            'sim' => $sim,
+            'other' => $other,
+            'stock_value' => $stock,
+            'customer_due' => $customerDue,
+            'supplier_due' => $supplierDue,
+            'total' => round($cash + $bank + $mobile + $sim + $other + $stock + $customerDue - $supplierDue, 2),
+        ];
     }
 }

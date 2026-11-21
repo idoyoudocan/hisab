@@ -13,7 +13,11 @@
     <div class="field-row two">
       <div>
         <label for="type">দোকানের ধরন</label>
-        <input id="type" type="text" name="type" value="{{ old('type', $business->type) }}" placeholder="যেমন: মুদি দোকান">
+        <select id="type" name="type">
+          @foreach(\App\Models\Business::TYPES as $t)
+            <option value="{{ $t }}" @selected(old('type', $business->type) === $t)>{{ $t }}</option>
+          @endforeach
+        </select>
       </div>
       <div>
         <label for="phone">মোবাইল নম্বর</label>
