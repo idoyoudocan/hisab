@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+@include('partials.pwa-head')
 @livewireStyles
 </head>
 <body>
@@ -58,6 +59,7 @@
   <a href="{{ route('transactions.index') }}" class="{{ request()->routeIs('transactions.*') || request()->routeIs('products.*') || request()->routeIs('cashbook.*') || request()->routeIs('reports.*') || request()->routeIs('settings.*') ? 'active' : '' }}"><span class="ic">⋯</span>আরও</a>
 </nav>
 @endauth
+@include('partials.pwa-banner')
 @livewireScripts
 </body>
 </html>

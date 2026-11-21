@@ -170,3 +170,19 @@ footer.site{max-width:1080px;margin:0 auto;padding:24px 16px;color:var(--muted);
   .receipt{border:0;box-shadow:none}
   .card{box-shadow:none}
 }
+
+/* PWA install banner */
+.pwa-banner[hidden]{display:none}
+.pwa-banner{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:70;width:min(560px,calc(100vw - 24px));display:flex;align-items:center;gap:12px;background:var(--pine);color:#fff;border:1px solid rgba(198,161,91,.45);border-radius:18px;padding:12px 14px;box-shadow:0 16px 40px rgba(11,31,23,.35)}
+.pwa-banner-icon{flex:none;width:48px;height:48px;border-radius:12px}
+.pwa-banner-text{flex:1;min-width:0}
+.pwa-banner-text strong{display:block;font-size:15px}
+.pwa-banner-text span{display:block;font-size:12.5px;line-height:1.45;color:rgba(255,255,255,.78);margin-top:2px}
+.pwa-install-btn{flex:none;background:var(--gold);color:#0B1F17}
+.pwa-close{flex:none;background:none;border:0;color:rgba(255,255,255,.7);font-size:24px;line-height:1;cursor:pointer;padding:2px 4px}
+.pwa-close:hover{color:#fff}
+@media (max-width:720px){
+  .pwa-banner{bottom:76px}
+  .pwa-banner-text span{font-size:12px}
+  .pwa-install-btn{padding:8px 12px;font-size:13px}
+}

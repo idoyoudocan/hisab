@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+@include('partials.pwa-head')
 </head>
 <body style="padding-bottom:0">
 <header class="site">
@@ -39,7 +40,7 @@
     <div class="feature"><div class="ic">📦</div><h3>কেনাকাটা ও মজুদ</h3><p>মাল কিনলে স্টক বাড়ে, বিক্রি হলে কমে। কম স্টকে সতর্কতা আসে, ক্রেডিট লিমিটও ধরা যায়।</p></div>
     <div class="feature"><div class="ic">💵</div><h3>ক্যাশ বই ও দিন শেষ</h3><p>ক্যাশে কত টাকা আছে, কোথা থেকে এলো, কোথায় গেল — দিন শেষে এক পাতায় পুরো দিনের হিসাব।</p></div>
     <div class="feature"><div class="ic">📊</div><h3>লাভ-ক্ষতির বিবরণী</h3><p>মাসের আয়, কেনা দাম, মোট লাভ, খরচ আর নিট লাভ — দোকান ও ব্যক্তিগত খরচ আলাদা করে।</p></div>
-    <div class="feature"><div class="ic">📱</div><h3>মোবাইল-ফার্স্ট</h3><p>ফোনে চালানোর মতো করে বানানো — বড় বোতাম, সহজ মেনু, দ্রুত লোড। CSV এক্সপোর্টও আছে।</p></div>
+    <div class="feature"><div class="ic">📱</div><h3>মোবাইল-ফার্স্ট</h3><p>ফোনে চালানোর মতো করে বানানো — বড় বোতাম, সহজ মেনু, দ্রুত লোড। ফোন বা কম্পিউটারে অ্যাপের মতো ইনস্টল করে ব্যবহার করা যায়। CSV এক্সপোর্টও আছে।</p></div>
   </div>
 
   <p class="section-label mt" style="text-align:center">মূল্য</p>
@@ -61,5 +62,6 @@
   <p class="muted mt" style="text-align:center">হিসাব একটি SaaS পণ্য — প্রতিটি দোকানের হিসাব আলাদা অ্যাকাউন্টে সম্পূর্ণ গোপন থাকে।</p>
 </main>
 <footer class="site">© {{ date('Y') }} হিসাব — troxela.store পরিবারের পণ্য</footer>
+@include('partials.pwa-banner')
 </body>
 </html>
