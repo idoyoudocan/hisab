@@ -31,22 +31,29 @@
   <h1 style="text-align:center;font-size:24px">যত বড় প্যাকেজ, তত বেশি ছাড়</h1>
   <p style="text-align:center" class="muted">সব প্যাকেজে সব ফিচার — আনলিমিটেড মাল, কাস্টমার আর লেনদেন। পার্থক্য শুধু মেয়াদ আর ছাড়ে: বড় প্যাকেজ নিলে মাসপ্রতি খরচ কমে, আপনারও লাভ, আমাদেরও।</p>
 
+  <div class="offer-banner">🎉 সীমিত সময়ের অফার — এই ছাড়ের দাম যেকোনো সময় শেষ হতে পারে, এখনই প্ল্যান নিন।</div>
+
   @if($pending)
     <div class="card" style="border:2px solid var(--gold);text-align:center">
       <h2>⏳ অনুরোধ পাঠানো হয়েছে</h2>
       <p class="muted">আপনার <strong>{{ $pending->planName() }} প্ল্যান</strong> ({{ \App\Support\Hisab::money($pending->amount) }})-এর অনুরোধটি {{ $pending->created_at->format('d M Y') }} তারিখে পাঠানো হয়েছে। পেমেন্টের পর অ্যাডমিন আপনার মেয়াদ বাড়িয়ে দেবেন।</p>
     </div>
+    @include('packages.partials.pay-box')
   @endif
 
   <div class="pricing">
     @foreach($plans as $plan)
       <div class="price-card {{ $plan['badge'] === 'সবচেয়ে জনপ্রিয়' ? 'featured' : '' }}">
         @if($plan['badge'])<span class="plan-badge">{{ $plan['badge'] }}</span>@endif
+        <span class="offer-tag">⏰ সীমিত সময়ের অফার</span>
         <p class="eyebrow">{{ $plan['name'] }} · {{ $plan['months'] }} মাস</p>
-        <p class="price-old">নিয়মিত {{ \App\Support\Hisab::money($plan['regular']) }}</p>
+        <p class="real-price-label">আসল দাম</p>
+        <p class="real-price">{{ \App\Support\Hisab::money($plan['regular']) }}</p>
+        <p><span class="discount-badge">{{ $plan['discount'] }}% ছাড়</span></p>
+        <p class="pay-label">আপনি দেবেন</p>
         <div class="price">{{ \App\Support\Hisab::money($plan['payable']) }}</div>
-        <p class="price-per">মাসে মাত্র {{ \App\Support\Hisab::money($plan['per_month']) }} · {{ $plan['discount'] }}% ছাড়</p>
-        <p class="price-save">সাশ্রয় {{ \App\Support\Hisab::money($plan['savings']) }}</p>
+        <p class="price-save">✓ আপনার সাশ্রয় {{ \App\Support\Hisab::money($plan['savings']) }}</p>
+        <p class="price-per">মাসে মাত্র {{ \App\Support\Hisab::money($plan['per_month']) }}</p>
         <p class="muted">সব ফিচার অন্তর্ভুক্ত</p>
         @if($pending && $pending->plan_slug === $plan['slug'])
           <a class="btn ghost block" href="{{ route('packages.choose', $plan['slug']) }}">অনুরোধ পাঠানো হয়েছে ✓</a>

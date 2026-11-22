@@ -128,7 +128,7 @@ class PopupDrawerTest extends TestCase
         $this->assertMatchesRegularExpression('#/css/app\.css\?v=\d+#', $html, 'CSS URL must carry a version query so it can never be served stale');
 
         $sw = file_get_contents(public_path('sw.js'));
-        $this->assertStringContainsString("'hisab-v2'", $sw);
+        $this->assertStringContainsString("'hisab-v3'", $sw);
         $this->assertStringContainsString('staleWhileRevalidate', $sw);
         $this->assertStringContainsString('/livewire/', $sw, 'Livewire requests must still never be cached');
     }

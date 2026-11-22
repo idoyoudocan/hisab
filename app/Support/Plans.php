@@ -2,10 +2,17 @@
 
 namespace App\Support;
 
+use App\Models\SiteSetting;
+
 /**
  * The four subscription packages — the SINGLE source of truth for pricing.
  * Every page (packages page, admin extension, tests) reads from here;
  * no price is hardcoded anywhere else.
+ *
+ * Built-in defaults (regular price / discount) can be overridden by the
+ * owner from /admin/settings, stored in site_settings as
+ * plan.{slug}.regular and plan.{slug}.discount. Overrides take effect
+ * immediately with no code deploy.
  *
  * All plans include ALL features; only the duration and the discount differ.
  * Longer packages always cost less per month (bigger discount).
@@ -27,6 +34,16 @@ class Plans
 
     private static function make(string $slug, string $name, int $months, int $regular, int $discount, ?string $badge): array
     {
+        // Admin overrides from /admin/settings (site_settings), if set.
+        $overrideRegular = SiteSetting::get("plan.{$slug}.regular");
+        if ($overrideRegular !== null && $overrideRegular !== '' && (int) $overrideRegular >= 0) {
+            $regular = (int) $overrideRegular;
+        }
+        $overrideDiscount = SiteSetting::get("plan.{$slug}.discount");
+        if ($overrideDiscount !== null && $overrideDiscount !== '' && (int) $overrideDiscount >= 0 && (int) $overrideDiscount <= 90) {
+            $discount = (int) $overrideDiscount;
+        }
+
         $payable = (int) round($regular * (100 - $discount) / 100);
 
         return [

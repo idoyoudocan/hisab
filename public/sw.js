@@ -3,7 +3,7 @@
  * CSS/JS use stale-while-revalidate: serve the cached copy instantly and
  * fetch a fresh copy in the background, so a deployed stylesheet can never
  * stay stale on a phone that visited before. */
-const CACHE = 'hisab-v2';
+const CACHE = 'hisab-v3';
 const SHELL = [
   '/',
  '/css/app.css',

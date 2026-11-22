@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\SiteSettingsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\CapitalController;
@@ -107,6 +108,8 @@ Route::middleware('auth')->group(function () {
 // Owner admin panel — access via HISAB_ADMIN_EMAILS in .env (see config/hisab.php).
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/settings', [SiteSettingsController::class, 'index'])->name('settings');
+    Route::put('/settings', [SiteSettingsController::class, 'update'])->name('settings.update');
     Route::get('/businesses', [AdminController::class, 'businesses'])->name('businesses');
     Route::get('/businesses/{business}', [AdminController::class, 'show'])->name('businesses.show');
     Route::post('/businesses/{business}/extend', [AdminController::class, 'extend'])->name('businesses.extend');
