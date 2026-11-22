@@ -14,10 +14,31 @@ class ProductManager extends Component
     public string $name = '';
     public string $sku = '';
     public string $unit = 'পিস';
-    public float $purchase_price = 0;
-    public float $sale_price = 0;
-    public float $stock = 0;
-    public float $low_stock_at = 0;
+    public $purchase_price = 0;
+    public $sale_price = 0;
+    public $stock = 0;
+    public $low_stock_at = 0;
+
+    /** Number inputs send '' when cleared — coerce to 0 (typed float can't hold ''). */
+    public function updatedPurchasePrice($value): void
+    {
+        $this->purchase_price = ($value === '' || $value === null) ? 0 : (float) $value;
+    }
+
+    public function updatedSalePrice($value): void
+    {
+        $this->sale_price = ($value === '' || $value === null) ? 0 : (float) $value;
+    }
+
+    public function updatedStock($value): void
+    {
+        $this->stock = ($value === '' || $value === null) ? 0 : (float) $value;
+    }
+
+    public function updatedLowStockAt($value): void
+    {
+        $this->low_stock_at = ($value === '' || $value === null) ? 0 : (float) $value;
+    }
 
     public function mount(): void
     {

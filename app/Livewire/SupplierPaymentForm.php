@@ -12,11 +12,17 @@ class SupplierPaymentForm extends Component
     public int $businessId;
     public int $supplierId;
     public float $due = 0;
-    public float $amount = 0;
+    public $amount = 0;
     public string $method = 'cash';
     public string $date = '';
     public string $note = '';
     public string $error = '';
+
+    /** Number inputs send '' when cleared — coerce to 0 (typed float can't hold ''). */
+    public function updatedAmount($value): void
+    {
+        $this->amount = ($value === '' || $value === null) ? 0 : (float) $value;
+    }
 
     public function mount(int $supplierId): void
     {

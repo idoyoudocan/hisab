@@ -12,10 +12,16 @@ class TransactionManager extends Component
     public string $type = 'expense';
     public string $category = '';
     public string $scope = 'shop';
-    public float $amount = 0;
+    public $amount = 0;
     public string $date = '';
     public string $method = 'cash';
     public string $note = '';
+
+    /** Number inputs send '' when cleared — coerce to 0 (typed float can't hold ''). */
+    public function updatedAmount($value): void
+    {
+        $this->amount = ($value === '' || $value === null) ? 0 : (float) $value;
+    }
 
     public function mount(): void
     {

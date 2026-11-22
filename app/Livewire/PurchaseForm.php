@@ -15,8 +15,14 @@ class PurchaseForm extends Component
     public string $supplier_id = '';
     public string $purchase_date = '';
     public string $note = '';
-    public float $paid = 0;
+    public $paid = 0;
     public array $rows = [];
+
+    /** Number inputs send '' when cleared — coerce to 0 (typed float can't hold ''). */
+    public function updatedPaid($value): void
+    {
+        $this->paid = ($value === '' || $value === null) ? 0 : (float) $value;
+    }
 
     public function mount(): void
     {
