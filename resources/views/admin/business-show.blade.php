@@ -27,17 +27,16 @@
 
 <div class="admin-card">
   <h2>মেয়াদ বাড়ান</h2>
-  <p class="muted">টাকা পাওয়ার পর এখান থেকে মেয়াদ বাড়ান — পেমেন্ট আপনাআপনি লেখা হবে (৳৩০০/মাস)। চালু থাকলে বর্তমান মেয়াদের পর থেকে বাড়বে, মেয়াদ শেষ হলে আজ থেকে।</p>
+  <p class="muted">টাকা পাওয়ার পর এখান থেকে মেয়াদ বাড়ান — পেমেন্ট আপনাআপনি প্ল্যানের দামে লেখা হবে। চালু থাকলে বর্তমান মেয়াদের পর থেকে বাড়বে, মেয়াদ শেষ হলে আজ থেকে।</p>
   <form method="POST" action="{{ route('admin.businesses.extend', $business) }}">
     @csrf
     <div class="field-row two">
       <div>
         <label for="months">কত মাস</label>
         <select id="months" name="months">
-          <option value="1">১ মাস — ৳৩০০</option>
-          <option value="3">৩ মাস — ৳৯০০</option>
-          <option value="6">৬ মাস — ৳১,৮০০</option>
-          <option value="12">১২ মাস — ৳৩,৬০০</option>
+          @foreach(\App\Support\Plans::all() as $plan)
+            <option value="{{ $plan['months'] }}">{{ $plan['months'] }} মাস — {{ $plan['name'] }} {{ \App\Support\Hisab::money($plan['payable']) }} ({{ $plan['discount'] }}% ছাড়)</option>
+          @endforeach
         </select>
       </div>
       <div>
@@ -98,6 +97,7 @@
     <div class="list-row">
       <div>
         <strong class="num">{{ \App\Support\Hisab::money($p->amount) }}</strong> · {{ $p->methodLabel() }}
+        @if($p->planName()) · {{ $p->planName() }} প্ল্যান @endif
         @if($p->months > 0) · {{ $p->months }} মাসের মেয়াদ @endif
         <br><span class="muted">{{ $p->paid_at->format('d M Y') }}@if($p->note) — {{ $p->note }}@endif</span>
       </div>

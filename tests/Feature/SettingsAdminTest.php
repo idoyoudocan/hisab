@@ -231,7 +231,8 @@ class SettingsAdminTest extends TestCase
             $fresh->paid_until->toDateString()
         );
         $this->assertDatabaseHas('subscription_payments', [
-            'business_id' => $biz->id, 'amount' => 900, 'months' => 3, 'method' => 'bkash',
+            'business_id' => $biz->id, 'amount' => 360, 'months' => 3, 'method' => 'bkash',
+            'plan_slug' => 'standard', // manual extension now charges the plan price
         ]);
     }
 

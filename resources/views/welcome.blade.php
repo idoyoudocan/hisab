@@ -15,6 +15,7 @@
   <div class="header-inner">
     <a class="brand" href="{{ route('landing') }}"><span class="brand-mark"><i>৳</i></span><span>হিসাব<small>দোকানের হিসাব-নিকাশ</small></span></a>
     <span style="margin-left:auto"></span>
+    <a href="{{ route('packages.index') }}" class="hide-mobile" style="font-weight:600">প্যাকেজ</a>
     @auth
       <a class="btn sm dark" href="{{ route('dashboard') }}">ড্যাশবোর্ডে যান</a>
     @else
@@ -53,10 +54,10 @@
       <a class="btn dark" href="{{ route('register') }}">শুরু করুন</a>
     </div>
     <div class="price-card featured">
-      <p class="eyebrow">প্রো</p>
-      <div class="price">৳৩০০<span style="font-size:16px">/মাস</span></div>
-      <p>সব ফিচার, আনলিমিটেড মাল-কাস্টমার-লেনদেন।</p>
-      <a class="btn" href="{{ route('register') }}">ট্রায়াল দিয়ে শুরু করুন</a>
+      <p class="eyebrow">পেইড প্ল্যান</p>
+      <div class="price">৳১৫০<span style="font-size:16px">/মাস থেকে</span></div>
+      <p>সব ফিচার, আনলিমিটেড মাল-কাস্টমার-লেনদেন। যত বড় প্যাকেজ, তত বেশি ছাড়।</p>
+      <a class="btn" href="{{ route('packages.index') }}">প্যাকেজ দেখুন</a>
     </div>
   </div>
   <p class="muted mt" style="text-align:center">হিসাব একটি SaaS পণ্য — প্রতিটি দোকানের হিসাব আলাদা অ্যাকাউন্টে সম্পূর্ণ গোপন থাকে।</p>

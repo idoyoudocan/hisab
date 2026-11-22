@@ -4,15 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
+use App\Models\PlanRequest;
 use App\Models\SubscriptionPayment;
+use App\Support\Plans;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AdminController extends Controller
 {
-    private const MONTHLY_PRICE = 300;
-
     public function dashboard(): View
     {
         $businesses = Business::with('owner')->latest()->get();
@@ -36,9 +36,15 @@ class AdminController extends Controller
             'trialCount' => $trial->count(),
             'expiredCount' => $expired->count(),
             'newThisMonth' => $businesses->filter(fn (Business $b) => $b->created_at->isCurrentMonth())->count(),
-            'monthlyRevenue' => $paid->count() * self::MONTHLY_PRICE,
+            // Income actually recorded this month (subscription payments by paid_at).
+            'monthlyRevenue' => (float) SubscriptionPayment::whereYear('paid_at', $now->year)
+                ->whereMonth('paid_at', $now->month)
+                ->sum('amount'),
             'expiring' => $expiring->take(10),
             'recent' => $businesses->take(10),
+            'pendingRequests' => PlanRequest::with('business.owner')
+                ->where('status', PlanRequest::STATUS_PENDING)
+                ->latest()->get(),
         ]);
     }
 
@@ -82,7 +88,7 @@ class AdminController extends Controller
         ]);
     }
 
-    /** Extend a subscription by N months and record the payment (৳300/month). */
+    /** Extend a subscription by N months and record the payment (plan price). */
     public function extend(Request $request, Business $business): RedirectResponse
     {
         $data = $request->validate([
@@ -91,7 +97,8 @@ class AdminController extends Controller
             'note' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $this->applyExtension($business, (int) $data['months'], self::MONTHLY_PRICE * (int) $data['months'], $data['method'], $data['note'] ?? null);
+        $plan = Plans::forMonths((int) $data['months']);
+        $this->applyExtension($business, (int) $data['months'], (float) $plan['payable'], $data['method'], $data['note'] ?? null, null, $plan['slug']);
 
         return back()->with('status', 'মেয়াদ '.(int) $data['months'].' মাস বাড়ানো হয়েছে — পেইড পর্যন্ত '.$business->fresh()->paid_until->format('d M Y').'।');
     }
@@ -107,12 +114,44 @@ class AdminController extends Controller
             'note' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $this->applyExtension($business, (int) $data['months'], (float) $data['amount'], $data['method'], $data['note'] ?? null, $data['paid_at']);
+        // When the payment covers a standard plan duration, record which plan it was.
+        $planSlug = Plans::forMonths((int) $data['months'])['slug'] ?? null;
+        $this->applyExtension($business, (int) $data['months'], (float) $data['amount'], $data['method'], $data['note'] ?? null, $data['paid_at'], $planSlug);
 
         return back()->with('status', 'পেমেন্ট সংরক্ষিত হয়েছে।');
     }
 
-    private function applyExtension(Business $business, int $months, float $amount, string $method, ?string $note, ?string $paidAt = null): void
+    /** Approve a shopkeeper's plan request: extend + record the plan payment. */
+    public function approvePlanRequest(Request $request, PlanRequest $planRequest): RedirectResponse
+    {
+        if (! $planRequest->isPending()) {
+            return back()->with('status', 'এই অনুরোধটি ইতিমধ্যেই নিষ্পত্তি হয়েছে।');
+        }
+
+        $data = $request->validate([
+            'method' => ['required', 'string', 'in:cash,bkash,nagad,bank'],
+            'note' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $plan = Plans::findOrFail($planRequest->plan_slug);
+        $business = $planRequest->business;
+        $this->applyExtension($business, $plan['months'], (float) $plan['payable'], $data['method'], $data['note'] ?? null, null, $plan['slug']);
+        $planRequest->update(['status' => PlanRequest::STATUS_APPROVED]);
+
+        return back()->with('status', $business->name.' — '.$plan['name'].' প্ল্যান চালু হয়েছে, মেয়াদ '.$business->fresh()->paid_until->format('d M Y').' পর্যন্ত।');
+    }
+
+    /** Reject a shopkeeper's plan request; nothing else changes. */
+    public function rejectPlanRequest(PlanRequest $planRequest): RedirectResponse
+    {
+        if ($planRequest->isPending()) {
+            $planRequest->update(['status' => PlanRequest::STATUS_REJECTED]);
+        }
+
+        return back()->with('status', 'অনুরোধটি বাতিল করা হয়েছে।');
+    }
+
+    private function applyExtension(Business $business, int $months, float $amount, string $method, ?string $note, ?string $paidAt = null, ?string $planSlug = null): void
     {
         $base = ($business->paid_until !== null && $business->paid_until->isFuture())
             ? $business->paid_until->copy()
@@ -122,6 +161,7 @@ class AdminController extends Controller
             'amount' => $amount,
             'method' => $method,
             'months' => $months,
+            'plan_slug' => $planSlug,
             'paid_at' => $paidAt ?? now()->toDateString(),
             'note' => $note,
             'recorded_by' => auth()->user()?->email,
@@ -130,7 +170,7 @@ class AdminController extends Controller
         if ($months > 0) {
             $business->update([
                 'paid_until' => \Carbon\Carbon::parse($base)->addMonths($months)->toDateString(),
-                'plan' => 'pro',
+                'plan' => $planSlug ?? 'pro',
             ]);
         }
     }

@@ -71,6 +71,27 @@ class Business extends Model
     public function moneyAccounts(): HasMany { return $this->hasMany(MoneyAccount::class); }
     public function cashCounts(): HasMany { return $this->hasMany(CashCount::class); }
     public function subscriptionPayments(): HasMany { return $this->hasMany(SubscriptionPayment::class); }
+    public function planRequests(): HasMany { return $this->hasMany(PlanRequest::class); }
+
+    /**
+     * The name of the business's current paid plan, e.g. "স্ট্যান্ডার্ড".
+     * Derived from the latest subscription payment's plan slug; null when
+     * unknown (e.g. paid before plans existed) — callers then show just
+     * the paid-until date.
+     */
+    public function currentPlanName(): ?string
+    {
+        $latest = $this->subscriptionPayments()
+            ->whereNotNull('plan_slug')
+            ->latest('paid_at')->latest('id')
+            ->first();
+
+        if ($latest !== null) {
+            return \App\Support\Plans::find($latest->plan_slug)['name'] ?? null;
+        }
+
+        return \App\Support\Plans::find($this->plan ?? '')['name'] ?? null;
+    }
 
     public function isTrialActive(): bool
     {

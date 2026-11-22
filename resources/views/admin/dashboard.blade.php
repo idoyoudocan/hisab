@@ -11,6 +11,35 @@
 </div>
 
 <div class="admin-card">
+  <h2>📦 প্ল্যানের অনুরোধ (অনুমোদনের অপেক্ষায়)</h2>
+  @forelse($pendingRequests as $req)
+    <div class="list-row">
+      <div>
+        <a href="{{ route('admin.businesses.show', $req->business) }}"><strong>{{ $req->business->name }}</strong></a>
+        {{ $req->business->owner?->name }} · {{ $req->planName() }} প্ল্যান ({{ $req->plan()['months'] ?? '' }} মাস) · <strong>{{ \App\Support\Hisab::money($req->amount) }}</strong>
+        <br><span class="muted">{{ $req->created_at->format('d M Y, h:i A') }}</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <form method="POST" action="{{ route('admin.plan-requests.approve', $req) }}" style="display:flex;gap:6px">
+          @csrf
+          <select name="method" aria-label="পেমেন্টের মাধ্যম">
+            @foreach(\App\Models\SubscriptionPayment::methods() as $k => $v)<option value="{{ $k }}">{{ $v }}</option>@endforeach
+          </select>
+          <button class="btn sm dark" type="submit">অনুমোদন করুন</button>
+        </form>
+        <form method="POST" action="{{ route('admin.plan-requests.reject', $req) }}">
+          @csrf
+          <button class="btn sm ghost" type="submit">বাতিল</button>
+        </form>
+      </div>
+    </div>
+  @empty
+    <p class="muted">কোনো প্ল্যানের অনুরোধ অপেক্ষায় নেই।</p>
+  @endforelse
+  <p class="muted">অনুমোদন করলে পেমেন্ট পাওয়ার পর মেয়াদ বাড়বে — চালু থাকলে বর্তমান মেয়াদের পর থেকে, মেয়াদ শেষ হলে আজ থেকে।</p>
+</div>
+
+<div class="admin-card">
   <h2>⏰ ৭ দিনের মধ্যে মেয়াদ শেষ হচ্ছে</h2>
   @forelse($expiring as $b)
     <div class="list-row">

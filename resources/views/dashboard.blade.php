@@ -6,16 +6,16 @@
   @if($business->isTrialActive())
     <span class="badge gold">ফ্রি ট্রায়াল — {{ $business->trial_ends_at->diffForHumans() }} পর্যন্ত</span>
   @elseif($business->plan === 'trial')
-    <span class="badge amber">ট্রায়াল শেষ — প্রো নিন ৳৩০০/মাস</span>
+    <span class="badge amber">ট্রায়াল শেষ — <a href="{{ route('packages.index') }}">প্যাকেজ দেখুন</a></span>
   @else
-    <span class="badge green">প্রো প্ল্যান</span>
+    <span class="badge green">{{ $business->currentPlanName() ?? 'পেইড' }} প্ল্যান</span>
   @endif
 </div>
 
 @if($business->subscriptionStatus() === 'trial' && ($business->trialDaysLeft() ?? 99) <= 3)
-  <div class="trial-banner">⏰ ফ্রি ট্রায়াল শেষ হতে আর {{ $business->trialDaysLeft() }} দিন বাকি ({{ $business->trial_ends_at->format('d M Y') }})। এরপর প্রো প্ল্যান ৳৩০০/মাস — <a href="{{ route('settings.index') }}">সেটিংসে দেখুন</a></div>
+  <div class="trial-banner">⏰ ফ্রি ট্রায়াল শেষ হতে আর {{ $business->trialDaysLeft() }} দিন বাকি ({{ $business->trial_ends_at->format('d M Y') }})। এরপর প্যাকেজ ৳১৫০ থেকে শুরু — <a href="{{ route('packages.index') }}">প্যাকেজ দেখুন</a></div>
 @elseif($business->subscriptionStatus() === 'expired')
-  <div class="trial-banner urgent">⚠️ আপনার ট্রায়ালের মেয়াদ শেষ। প্রো প্ল্যান (৳৩০০/মাস) নিতে পেমেন্ট করুন — <a href="{{ route('settings.index') }}">সেটিংসে দেখুন</a></div>
+  <div class="trial-banner urgent">⚠️ আপনার ট্রায়ালের মেয়াদ শেষ। প্যাকেজ নিতে পেমেন্ট করুন — <a href="{{ route('packages.index') }}">প্যাকেজ দেখুন</a></div>
 @endif
 
 <div class="hero-cash">

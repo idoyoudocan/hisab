@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PackageController;
 use App\Http\Controllers\CapitalController;
 use App\Http\Controllers\CashbookController;
 use App\Http\Controllers\CashCountController;
@@ -25,6 +26,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 })->name('landing');
+
+// Public packages/pricing page (logged-out and logged-in)
+Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
 
 // Secured deploy hook (no shell on shared hosting): POST with X-Deploy-Token
 // Must run without the web middleware stack: the session middleware needs
@@ -93,6 +97,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/password', [SettingsController::class, 'changePassword'])->name('settings.password');
+
+    // Choose / request a subscription package (login required; guests are
+    // redirected to login and sent back here after signing in).
+    Route::get('/packages/{plan}/choose', [PackageController::class, 'choose'])->name('packages.choose');
+    Route::post('/packages/{plan}/request', [PackageController::class, 'request'])->name('packages.request');
 });
 
 // Owner admin panel — access via HISAB_ADMIN_EMAILS in .env (see config/hisab.php).
@@ -102,4 +111,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/businesses/{business}', [AdminController::class, 'show'])->name('businesses.show');
     Route::post('/businesses/{business}/extend', [AdminController::class, 'extend'])->name('businesses.extend');
     Route::post('/businesses/{business}/payments', [AdminController::class, 'recordPayment'])->name('businesses.payments');
+    Route::post('/plan-requests/{planRequest}/approve', [AdminController::class, 'approvePlanRequest'])->name('plan-requests.approve');
+    Route::post('/plan-requests/{planRequest}/reject', [AdminController::class, 'rejectPlanRequest'])->name('plan-requests.reject');
 });

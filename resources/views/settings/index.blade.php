@@ -7,14 +7,14 @@
 <div class="card">
   <p class="section-label">সাবস্ক্রিপশন</p>
   @if($business->subscriptionStatus() === 'paid')
-    <h2>প্রো প্ল্যান — পেইড</h2>
-    <p class="muted">আপনার প্ল্যান <strong>{{ $business->paid_until->format('d M Y') }}</strong> পর্যন্ত চালু আছে। মেয়াদ শেষ হলে আবার পেমেন্ট করে বাড়াতে হবে।</p>
+    <h2>{{ $business->currentPlanName() ?? 'পেইড' }} প্ল্যান — পেইড</h2>
+    <p class="muted">আপনার প্ল্যান <strong>{{ $business->paid_until->format('d M Y') }}</strong> পর্যন্ত চালু আছে। মেয়াদ শেষ হলে আবার পেমেন্ট করে বাড়াতে হবে। <a href="{{ route('packages.index') }}">প্যাকেজ দেখুন</a></p>
   @elseif($business->subscriptionStatus() === 'trial')
     <h2>ফ্রি ট্রায়াল — {{ $business->trialDaysLeft() }} দিন বাকি</h2>
-    <p class="muted">ট্রায়াল শেষ <strong>{{ $business->trial_ends_at->format('d M Y') }}</strong>। এরপর প্রো প্ল্যান ৳৩০০/মাস — পেমেন্ট করতে আমাদের সাথে যোগাযোগ করুন।</p>
+    <p class="muted">ট্রায়াল শেষ <strong>{{ $business->trial_ends_at->format('d M Y') }}</strong>। এরপর প্যাকেজ ৳১৫০ থেকে শুরু — <a href="{{ route('packages.index') }}">প্যাকেজ দেখুন</a></p>
   @else
     <h2>মেয়াদ শেষ</h2>
-    <p class="muted">আপনার ট্রায়াল শেষ হয়ে গেছে। প্রো প্ল্যান (৳৩০০/মাস) নিতে পেমেন্ট করুন — পেমেন্টের পর মেয়াদ বাড়িয়ে দেওয়া হবে।</p>
+    <p class="muted">আপনার ট্রায়াল শেষ হয়ে গেছে। প্যাকেজ নিতে পেমেন্ট করুন — পেমেন্টের পর মেয়াদ বাড়িয়ে দেওয়া হবে। <a href="{{ route('packages.index') }}">প্যাকেজ দেখুন</a></p>
   @endif
 </div>
 

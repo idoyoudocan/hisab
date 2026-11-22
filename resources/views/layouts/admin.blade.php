@@ -17,6 +17,7 @@
   <nav>
     <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">ড্যাশবোর্ড</a>
     <a href="{{ route('admin.businesses') }}" class="{{ request()->routeIs('admin.businesses*') ? 'active' : '' }}">ব্যবসা</a>
+    <a href="{{ route('packages.index') }}">প্যাকেজ</a>
     <a href="{{ route('dashboard') }}">দোকানের অ্যাপ →</a>
     <a href="#" onclick="event.preventDefault();document.getElementById('admin-logout').submit();">লগআউট</a>
   </nav>

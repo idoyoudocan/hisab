@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class SubscriptionPayment extends Model
 {
     protected $fillable = [
-        'business_id', 'amount', 'method', 'months',
+        'business_id', 'amount', 'method', 'months', 'plan_slug',
         'paid_at', 'note', 'recorded_by',
     ];
 
@@ -38,5 +38,11 @@ class SubscriptionPayment extends Model
     public function methodLabel(): string
     {
         return self::methods()[$this->method] ?? $this->method;
+    }
+
+    /** The plan this payment was for, e.g. "স্ট্যান্ডার্ড". */
+    public function planName(): ?string
+    {
+        return $this->plan_slug ? (\App\Support\Plans::find($this->plan_slug)['name'] ?? null) : null;
     }
 }
