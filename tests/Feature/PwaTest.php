@@ -39,7 +39,7 @@ class PwaTest extends TestCase
         $this->assertStringContainsString("addEventListener('fetch'", $sw);
         $this->assertStringContainsString("addEventListener('install'", $sw);
         $this->assertStringContainsString("addEventListener('activate'", $sw);
-        $this->assertStringContainsString('hisab-v1', $sw);
+        $this->assertStringContainsString('hisab-v2', $sw);
         $this->assertStringContainsString('/livewire/', $sw);
         $this->assertStringContainsString('ইন্টারনেট সংযোগ নেই', $sw);
     }

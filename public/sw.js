@@ -1,6 +1,9 @@
 /* Hisab service worker — app shell caching + offline fallback.
- * Bump CACHE when the shell changes. Livewire requests are never cached. */
-const CACHE = 'hisab-v1';
+ * Bump CACHE when the shell changes. Livewire requests are never cached.
+ * CSS/JS use stale-while-revalidate: serve the cached copy instantly and
+ * fetch a fresh copy in the background, so a deployed stylesheet can never
+ * stay stale on a phone that visited before. */
+const CACHE = 'hisab-v2';
 const SHELL = [
   '/',
  '/css/app.css',
@@ -23,6 +26,22 @@ self.addEventListener('activate', (event) => {
       .then(() => self.clients.claim())
   );
 });
+
+/* Stale-while-revalidate: answer instantly from cache when possible,
+ * and fetch a fresh copy in the background to update the cache. */
+function staleWhileRevalidate(req) {
+  return caches.open(CACHE).then((cache) =>
+    cache.match(req).then((hit) => {
+      const network = fetch(req)
+        .then((res) => {
+          if (res.ok) cache.put(req, res.clone());
+          return res;
+        })
+        .catch(() => undefined);
+      return hit || network;
+    })
+  );
+}
 
 function offlineResponse() {
   return new Response(
@@ -60,8 +79,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets + manifest: cache first.
-  if (/\.(css|js|png|jpg|jpeg|svg|webp|ico|woff2?|ttf)$/i.test(url.pathname) || url.pathname === '/manifest.json') {
+  // CSS/JS: stale-while-revalidate — instant from cache, fresh in background.
+  if (/\.(css|js)$/i.test(url.pathname)) {
+    event.respondWith(staleWhileRevalidate(req));
+    return;
+  }
+
+  // Images, fonts, icons, manifest: cache first.
+  if (/\.(png|jpg|jpeg|svg|webp|ico|woff2?|ttf)$/i.test(url.pathname) || url.pathname === '/manifest.json') {
     event.respondWith(
       caches.match(req).then(
         (hit) =>

@@ -86,7 +86,7 @@
   <a class="btn qa" href="{{ route('transactions.index') }}">+ খরচ</a>
   <a class="btn ghost qa" href="{{ route('customers.index') }}">+ আদায়</a>
   @if($business->moduleEnabled('cash_count'))
-  <button type="button" class="btn ghost qa" onclick="Livewire.dispatch('open-cash-modal')">💵 ক্যাশ মেলান</button>
+  <button type="button" class="btn ghost qa" onclick="window.dispatchEvent(new CustomEvent('open-cash-modal'));Livewire.dispatch('open-cash-modal')">💵 ক্যাশ মেলান</button>
   @endif
 </div>
 

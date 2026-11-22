@@ -1,7 +1,7 @@
 <div>
-<button type="button" class="btn dark block" wire:click="openModal">💵 ক্যাশ মেলান</button>
+<button type="button" class="btn dark block" @click="window.dispatchEvent(new CustomEvent('open-cash-modal'))" wire:click="openModal">💵 ক্যাশ মেলান</button>
 
-<x-modal :show="$showModal" wire-prop="showModal" title="ক্যাশ মেলান">
+<x-modal wire-prop="showModal" open-event="open-cash-modal" title="ক্যাশ মেলান">
   @include('livewire.cash-counter-form')
 </x-modal>
 

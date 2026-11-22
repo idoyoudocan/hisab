@@ -1,11 +1,11 @@
 <div>
 <div class="flex space-between">
   <h1 style="margin-bottom:0">টাকার হিসাব</h1>
-  <button type="button" class="btn dark sm" wire:click="openAdd">+ অ্যাকাউন্ট যোগ করুন</button>
+  <button type="button" class="btn dark sm" @click="window.dispatchEvent(new CustomEvent('open-account-modal'))" wire:click="openAdd">+ অ্যাকাউন্ট যোগ করুন</button>
 </div>
 <p class="muted">সব অ্যাকাউন্ট মিলে মোট ব্যালেন্স <strong>{{ \App\Support\Hisab::money($register->displayBalance($business) + collect($totals)->sum()) }}</strong></p>
 
-<x-modal :show="$showFormModal" wire-prop="showFormModal" title="{{ $editId ? 'অ্যাকাউন্ট এডিট করুন' : 'নতুন অ্যাকাউন্ট যোগ করুন' }}">
+<x-modal wire-prop="showFormModal" open-event="open-account-modal" title="{{ $editId ? 'অ্যাকাউন্ট এডিট করুন' : 'নতুন অ্যাকাউন্ট যোগ করুন' }}">
   <div class="field-row two">
     <div>
       <label>ধরন</label>
@@ -50,7 +50,7 @@
   </div>
   <div class="flex">
     <button type="button" class="btn mt" wire:click="save">{{ $editId ? 'হালনাগাদ করুন' : 'অ্যাকাউন্ট যোগ করুন' }}</button>
-    <button type="button" class="btn ghost mt" wire:click="cancelEdit">বাতিল</button>
+    <button type="button" class="btn ghost mt" @click="open = false" wire:click="cancelEdit">বাতিল</button>
   </div>
 </x-modal>
 
@@ -86,18 +86,18 @@
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <strong class="num">{{ \App\Support\Hisab::money($a->balance) }}</strong>
-            <button type="button" class="btn ghost sm" wire:click="editAccount({{ $a->id }})">এডিট</button>
+            <button type="button" class="btn ghost sm" @click="window.dispatchEvent(new CustomEvent('open-account-modal'))" wire:click="editAccount({{ $a->id }})">এডিট</button>
             <button type="button" class="btn danger sm" wire:click="delete({{ $a->id }})" wire:confirm="এই অ্যাকাউন্টটি মুছে ফেলবেন?">মুছুন</button>
           </div>
         </div>
       @endforeach
-      <button type="button" class="btn ghost sm mt" wire:click="openAdd('{{ $type }}')">+ আরও {{ \App\Models\MoneyAccount::types()[$type] }} যোগ করুন</button>
+      <button type="button" class="btn ghost sm mt" @click="window.dispatchEvent(new CustomEvent('open-account-modal'))" wire:click="openAdd('{{ $type }}')">+ আরও {{ \App\Models\MoneyAccount::types()[$type] }} যোগ করুন</button>
     </div>
   @else
     <div class="card">
       <div class="list-row" style="border-bottom:0;padding:4px 0">
         <span><strong>{{ \App\Models\MoneyAccount::types()[$type] }}</strong> <span class="muted">— এখনো যোগ করা হয়নি</span></span>
-        <button type="button" class="btn ghost sm" wire:click="openAdd('{{ $type }}')">যোগ করুন</button>
+        <button type="button" class="btn ghost sm" @click="window.dispatchEvent(new CustomEvent('open-account-modal'))" wire:click="openAdd('{{ $type }}')">যোগ করুন</button>
       </div>
     </div>
   @endif

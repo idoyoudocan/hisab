@@ -198,6 +198,9 @@ footer.site{max-width:1080px;margin:0 auto;padding:24px 16px;color:var(--muted);
 .step-btn:active{background:var(--emerald-soft)}
 .stepper input{flex:none}
 
+/* Alpine-cloaked elements stay hidden until Alpine boots (no flash). */
+[x-cloak]{display:none!important}
+
 /* Modal popup — centred card on desktop, bottom sheet on mobile */
 .modal-overlay{position:fixed;inset:0;z-index:80;background:rgba(11,31,23,.55);display:flex;align-items:flex-end;justify-content:center;animation:modal-fade .18s ease-out}
 @keyframes modal-fade{from{opacity:0}to{opacity:1}}
@@ -224,20 +227,24 @@ footer.site{max-width:1080px;margin:0 auto;padding:24px 16px;color:var(--muted);
   .denom-row .step-btn{width:38px;height:38px}
 }
 
-/* "More" bottom sheet on mobile */
-.more-sheet{position:fixed;left:0;right:0;bottom:0;z-index:75;background:var(--card);border-radius:22px 22px 0 0;box-shadow:0 -8px 40px rgba(11,31,23,.3);padding:8px 16px calc(20px + env(safe-area-inset-bottom));max-height:70vh;overflow-y:auto}
-.more-sheet::before{content:"";display:block;width:44px;height:5px;border-radius:99px;background:var(--border);margin:6px auto 10px}
-.more-sheet a{display:flex;justify-content:space-between;align-items:center;padding:13px 4px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text);font-size:15px}
-.more-sheet a:last-child{border-bottom:0}
-.more-sheet a:hover{text-decoration:none;background:var(--emerald-soft)}
-/* The sheet lives inside nav.mobile, whose bottom-nav link rules
+/* "আরও" drawer on mobile — slides in from the right edge. */
+.more-backdrop{position:fixed;inset:0;z-index:74;background:rgba(11,31,23,.45);opacity:0;visibility:hidden;transition:opacity .25s ease-out,visibility 0s linear .25s}
+.more-backdrop.show{opacity:1;visibility:visible;transition:opacity .25s ease-out}
+.more-drawer{position:fixed;top:0;right:0;bottom:0;z-index:75;width:min(320px,86vw);background:var(--card);box-shadow:-8px 0 40px rgba(11,31,23,.3);transform:translateX(105%);visibility:hidden;transition:transform .28s ease-out,visibility 0s linear .28s;display:flex;flex-direction:column}
+.more-drawer.open{transform:none;visibility:visible;transition:transform .28s ease-out}
+.more-drawer-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px 10px;border-bottom:1px solid var(--border)}
+.more-drawer-head h2{margin:0}
+.more-drawer-body{overflow-y:auto;padding:8px 16px calc(20px + env(safe-area-inset-bottom))}
+.more-drawer-body a{display:flex;justify-content:space-between;align-items:center;padding:13px 4px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text);font-size:15px}
+.more-drawer-body a:last-child{border-bottom:0}
+.more-drawer-body a:hover{text-decoration:none;background:var(--emerald-soft)}
+/* The drawer lives inside nav.mobile, whose bottom-nav link rules
    (pale colour, column flex, small text) would otherwise win. */
-nav.mobile .more-sheet a{
+nav.mobile .more-drawer-body a{
   display:flex;flex-direction:row;justify-content:space-between;align-items:center;
   padding:13px 4px;min-width:0;font-size:15px;color:var(--text);
 }
-nav.mobile .more-sheet a:hover{color:var(--text)}
-.more-sheet-backdrop{position:fixed;inset:0;z-index:74;background:rgba(11,31,23,.45)}
+nav.mobile .more-drawer-body a:hover{color:var(--text)}
 
 /* Desktop "আরও" dropdown in the top nav */
 .nav-more{position:relative}

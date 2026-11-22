@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {{-- Deliberately separate from the shop app's CSS: tomorrow's admin HTML
      template replaces this layout + admin.css without touching shop logic. --}}
-<link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin.css').'?v='.filemtime(public_path('css/admin.css')) }}">
 </head>
 <body>
 <header class="admin-top">
