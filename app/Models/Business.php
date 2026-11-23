@@ -40,9 +40,14 @@ class Business extends Model
         'reports' => 'রিপোর্ট',
     ];
 
+    /** Account status set by the admin: active (normal) or disabled (login blocked). */
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_DISABLED = 'disabled';
+
     protected $fillable = [
         'user_id', 'name', 'type', 'phone', 'address',
         'opening_cash', 'plan', 'trial_ends_at', 'settings', 'paid_until',
+        'status', 'disabled_reason', 'disabled_at',
     ];
 
     protected function casts(): array
@@ -52,6 +57,7 @@ class Business extends Model
             'trial_ends_at' => 'datetime',
             'paid_until' => 'date',
             'settings' => 'array',
+            'disabled_at' => 'datetime',
         ];
     }
 
@@ -72,6 +78,18 @@ class Business extends Model
     public function cashCounts(): HasMany { return $this->hasMany(CashCount::class); }
     public function subscriptionPayments(): HasMany { return $this->hasMany(SubscriptionPayment::class); }
     public function planRequests(): HasMany { return $this->hasMany(PlanRequest::class); }
+    public function adminNotices(): HasMany { return $this->hasMany(AdminNotice::class); }
+
+    /** Has the admin disabled this account? Disabled = login blocked, data kept. */
+    public function isDisabled(): bool
+    {
+        return $this->status === self::STATUS_DISABLED;
+    }
+
+    public function isActive(): bool
+    {
+        return ! $this->isDisabled();
+    }
 
     /**
      * The name of the business's current paid plan, e.g. "স্ট্যান্ডার্ড".

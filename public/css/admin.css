@@ -64,6 +64,8 @@ table.admin-table{width:100%;border-collapse:collapse}
 .btn.dark{background:var(--pine);color:#fff}
 .btn.dark:hover{background:var(--emerald)}
 .btn.ghost{background:#fff;color:var(--pine);border:1px solid var(--pine)}
+.btn.danger{background:var(--danger);color:#fff;box-shadow:none}
+.btn.danger:hover{background:#96291f}
 .btn.sm{padding:7px 15px;font-size:13px;min-height:36px}
 .btn.block{width:100%}
 label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}

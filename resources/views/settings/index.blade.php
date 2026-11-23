@@ -106,4 +106,32 @@
     <button class="btn mt" type="submit">পাসওয়ার্ড বদলান</button>
   </form>
 </div>
+
+{{-- Backup, restore and reset --}}
+<div class="card">
+  <p class="section-label">ডেটা</p>
+  <h2>ব্যাকআপ ও রিসেট</h2>
+
+  <h3 class="mt">ব্যাকআপ ডাউনলোড করুন</h3>
+  <p class="muted">আপনার সব ডেটা — বিক্রি, কেনাকাটা, কাস্টমার, সাপ্লায়ার, বাকি, স্টক, ক্যাশ — একটা ফাইলে নামবে। ফাইলটি যত্নে রাখুন, পরে এটা দিয়েই ডেটা ফেরানো যাবে।</p>
+  <a class="btn" href="{{ route('data.backup') }}">⬇️ ব্যাকআপ ডাউনলোড করুন</a>
+
+  <h3 class="mt">ব্যাকআপ থেকে ডেটা ফেরান</h3>
+  <p class="muted">আগে নেওয়া ব্যাকআপ ফাইল দিলে বর্তমান ডেটা মুছে ব্যাকআপের ডেটা বসবে। শুধু এই দোকানের ব্যাকআপ ফাইলই চলবে — অন্য দোকানের বা ভুল ফাইল দিলে কিছুই বদলাবে না।</p>
+  <form method="POST" action="{{ route('data.restore') }}" enctype="multipart/form-data">
+    @csrf
+    <label for="backup">ব্যাকআপ ফাইল (.json)</label>
+    <input id="backup" type="file" name="backup" accept=".json,application/json" required>
+    <button class="btn ghost mt" type="submit">ব্যাকআপ থেকে ফেরান</button>
+  </form>
+
+  <h3 class="mt">সব ডেটা মুছে নতুন করে শুরু করুন</h3>
+  <p class="muted">বিক্রি, কেনাকাটা, কাস্টমার, সাপ্লায়ার, বাকি, আয়-ব্যয়, স্টক, টাকার অ্যাকাউন্ট ও ক্যাশ মেলানোর হিস্ট্রি — সব মুছে যাবে। ডিফল্ট খাতগুলো আবার বসবে। থাকবে: দোকানের তথ্য, লগইন, প্ল্যান/ট্রায়াল আর পেমেন্টের হিস্ট্রি। শুরুর ক্যাশ ০ হয়ে যাবে। রিসেটের আগে উপরে ব্যাকআপ ডাউনলোড করে রাখুন।</p>
+  <form method="POST" action="{{ route('data.reset') }}">
+    @csrf
+    <label for="confirm_name">কনফার্ম করতে দোকানের নাম লিখুন: <strong>{{ $business->name }}</strong></label>
+    <input id="confirm_name" type="text" name="confirm_name" placeholder="{{ $business->name }}" required>
+    <button class="btn danger mt" type="submit">সব ডেটা মুছে ফেলুন</button>
+  </form>
+</div>
 @endsection

@@ -26,6 +26,29 @@
 </div>
 
 <div class="admin-card">
+  <h2>অ্যাকাউন্টের অবস্থা</h2>
+  @if($business->isDisabled())
+    <p><span class="badge red">বন্ধ আছে</span></p>
+    <div class="list-row"><span>বন্ধের কারণ</span><strong>{{ $business->disabled_reason ?? '—' }}</strong></div>
+    <div class="list-row"><span>বন্ধ করা হয়েছে</span><strong>{{ $business->disabled_at?->format('d M Y, h:i A') ?? '—' }}</strong></div>
+    <p class="muted">বন্ধ থাকায় দোকানদার লগইন করতে পারছে না। তার ডেটা অক্ষত আছে — চালু করলেই আবার সব ফিরে পাবে।</p>
+    <form method="POST" action="{{ route('admin.businesses.enable', $business) }}">
+      @csrf
+      <button class="btn dark mt" type="submit">অ্যাকাউন্ট আবার চালু করুন</button>
+    </form>
+  @else
+    <p><span class="badge green">চালু আছে</span></p>
+    <p class="muted">বন্ধ করলে দোকানদার লগইন করতে পারবে না (কারণসহ বার্তা দেখবে)। ডেটা কিছুই মুছবে না — আবার চালু করলেই ফিরে পাবে।</p>
+    <form method="POST" action="{{ route('admin.businesses.disable', $business) }}">
+      @csrf
+      <label for="reason">বন্ধের কারণ — দোকানদারকে দেখানো হবে</label>
+      <input id="reason" type="text" name="reason" placeholder="যেমন: পেমেন্ট বাকি" required>
+      <button class="btn danger mt" type="submit">অ্যাকাউন্ট বন্ধ করুন</button>
+    </form>
+  @endif
+</div>
+
+<div class="admin-card">
   <h2>মেয়াদ বাড়ান</h2>
   <p class="muted">টাকা পাওয়ার পর এখান থেকে মেয়াদ বাড়ান — পেমেন্ট আপনাআপনি প্ল্যানের দামে লেখা হবে। চালু থাকলে বর্তমান মেয়াদের পর থেকে বাড়বে, মেয়াদ শেষ হলে আজ থেকে।</p>
   <form method="POST" action="{{ route('admin.businesses.extend', $business) }}">
@@ -106,5 +129,43 @@
   @empty
     <p class="muted">এখনো কোনো পেমেন্ট লেখা হয়নি।</p>
   @endforelse
+</div>
+
+<div class="admin-card">
+  <h2>নোটিফিকেশন পাঠান</h2>
+  <p class="muted">বার্তাটি দোকানদার তার ড্যাশবোর্ডের উপরে ব্যানার আকারে দেখবে, "পড়েছি" চাপলে সরবে।</p>
+  <form method="POST" action="{{ route('admin.businesses.notices', $business) }}">
+    @csrf
+    <label for="message">বার্তা</label>
+    <textarea id="message" name="message" rows="3" placeholder="যেমন: আগামীকালের মধ্যে পেমেন্ট করুন" required></textarea>
+    <button class="btn dark mt" type="submit">নোটিফিকেশন পাঠান</button>
+  </form>
+  @forelse($notices as $n)
+    <div class="list-row">
+      <div>
+        {{ $n->message }}
+        <br><span class="muted">{{ $n->created_at->format('d M Y, h:i A') }}@if($n->read_at) · পড়েছে {{ $n->read_at->format('d M Y, h:i A') }}@else · এখনো পড়েনি@endif</span>
+      </div>
+      @php($wa = \App\Support\Hisab::whatsappUrl($business->phone, $n->message))
+      @if($wa)<a class="btn sm ghost" href="{{ $wa }}" target="_blank" rel="noopener">WhatsApp-এ পাঠান</a>@endif
+    </div>
+  @empty
+    <p class="muted">এখনো কোনো নোটিফিকেশন পাঠানো হয়নি।</p>
+  @endforelse
+</div>
+
+<div class="admin-card">
+  <h2>অ্যাকাউন্ট ডিলেট করুন</h2>
+  @if(\App\Support\Hisab::isAdmin($business->owner))
+    <p class="muted">এটি অ্যাডমিনের অ্যাকাউন্ট — এখান থেকে ডিলেট করা যাবে না।</p>
+  @else
+    <p class="muted">সাবধান — ডিলেট করলে দোকানদারের লগইন, ব্যবসা, বিক্রি, কেনাকাটা, কাস্টমার, বাকি, পেমেন্টের হিস্ট্রি, নোটিফিকেশন — সব চিরতরে মুছে যাবে। ফেরানো যাবে না।</p>
+    <form method="POST" action="{{ route('admin.businesses.destroy', $business) }}">
+      @csrf
+      <label for="confirm_name">কনফার্ম করতে দোকানের নাম লিখুন: <strong>{{ $business->name }}</strong></label>
+      <input id="confirm_name" type="text" name="confirm_name" placeholder="{{ $business->name }}" required>
+      <button class="btn danger mt" type="submit">অ্যাকাউন্ট সম্পূর্ণ ডিলেট করুন</button>
+    </form>
+  @endif
 </div>
 @endsection

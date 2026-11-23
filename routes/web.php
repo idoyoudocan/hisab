@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SiteSettingsController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DataController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\CapitalController;
 use App\Http\Controllers\CashbookController;
@@ -58,8 +59,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name('password.update');
 });
 
+// Page shown to a logged-in shopkeeper whose account the admin disabled.
+Route::get('/account-disabled', [AuthController::class, 'showDisabled'])->name('account.disabled');
+
 // Authenticated app
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'business.active'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -99,6 +103,14 @@ Route::middleware('auth')->group(function () {
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/password', [SettingsController::class, 'changePassword'])->name('settings.password');
 
+    // Backup, restore and reset of the shop's own data.
+    Route::get('/settings/backup', [DataController::class, 'backup'])->name('data.backup');
+    Route::post('/settings/restore', [DataController::class, 'restore'])->name('data.restore');
+    Route::post('/settings/reset', [DataController::class, 'reset'])->name('data.reset');
+
+    // Dismiss an admin notice from the dashboard banner.
+    Route::post('/notices/{notice}/read', [DataController::class, 'markNoticeRead'])->name('notices.read');
+
     // Choose / request a subscription package (login required; guests are
     // redirected to login and sent back here after signing in).
     Route::get('/packages/{plan}/choose', [PackageController::class, 'choose'])->name('packages.choose');
@@ -114,6 +126,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/businesses/{business}', [AdminController::class, 'show'])->name('businesses.show');
     Route::post('/businesses/{business}/extend', [AdminController::class, 'extend'])->name('businesses.extend');
     Route::post('/businesses/{business}/payments', [AdminController::class, 'recordPayment'])->name('businesses.payments');
+    Route::post('/businesses/{business}/disable', [AdminController::class, 'disable'])->name('businesses.disable');
+    Route::post('/businesses/{business}/enable', [AdminController::class, 'enable'])->name('businesses.enable');
+    Route::post('/businesses/{business}/notices', [AdminController::class, 'sendNotice'])->name('businesses.notices');
+    Route::post('/businesses/{business}/delete', [AdminController::class, 'destroy'])->name('businesses.destroy');
     Route::post('/plan-requests/{planRequest}/approve', [AdminController::class, 'approvePlanRequest'])->name('plan-requests.approve');
     Route::post('/plan-requests/{planRequest}/reject', [AdminController::class, 'rejectPlanRequest'])->name('plan-requests.reject');
 });

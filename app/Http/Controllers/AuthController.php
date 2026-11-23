@@ -67,12 +67,34 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $business = Auth::user()->business;
+            if ($business !== null && $business->isDisabled()) {
+                $reason = $business->disabled_reason
+                    ? ' কারণ: '.$business->disabled_reason
+                    : '';
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')->withErrors([
+                    'email' => 'আপনার অ্যাকাউন্টটি বন্ধ আছে।'.$reason.' — বিস্তারিত জানতে অ্যাডমিনের সাথে যোগাযোগ করুন।',
+                ]);
+            }
+
             $request->session()->regenerate();
 
             return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors(['email' => 'ইমেইল বা পাসওয়ার্ড মিলছে না।'])->onlyInput('email');
+    }
+
+    /** Page shown to a logged-in shopkeeper whose account is disabled. */
+    public function showDisabled(): View
+    {
+        return view('auth.disabled', [
+            'business' => Auth::user()?->business,
+        ]);
     }
 
     public function logout(Request $request): RedirectResponse

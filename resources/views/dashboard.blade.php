@@ -18,6 +18,17 @@
   <div class="trial-banner urgent">⚠️ আপনার ট্রায়ালের মেয়াদ শেষ। প্যাকেজ নিতে পেমেন্ট করুন — <a href="{{ route('packages.index') }}">প্যাকেজ দেখুন</a></div>
 @endif
 
+{{-- Messages from the admin --}}
+@foreach($notices as $notice)
+  <div class="notice-banner">
+    <div><strong>📩 অ্যাডমিনের বার্তা:</strong> {{ $notice->message }}<br><span class="muted">{{ $notice->created_at->format('d M Y, h:i A') }}</span></div>
+    <form method="POST" action="{{ route('notices.read', $notice) }}">
+      @csrf
+      <button class="btn sm ghost" type="submit">পড়েছি</button>
+    </form>
+  </div>
+@endforeach
+
 <div class="hero-cash">
   <div class="eyebrow">ক্যাশে আছে</div>
   <div class="hero-amount">{{ \App\Support\Hisab::money($cash['balance']) }}</div>

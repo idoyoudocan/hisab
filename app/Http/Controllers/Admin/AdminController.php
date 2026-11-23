@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminNotice;
 use App\Models\Business;
 use App\Models\PlanRequest;
 use App\Models\SubscriptionPayment;
+use App\Support\BusinessData;
+use App\Support\Hisab;
 use App\Support\Plans;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,6 +38,7 @@ class AdminController extends Controller
             'paidCount' => $paid->count(),
             'trialCount' => $trial->count(),
             'expiredCount' => $expired->count(),
+            'disabledCount' => $businesses->filter(fn (Business $b) => $b->isDisabled())->count(),
             'newThisMonth' => $businesses->filter(fn (Business $b) => $b->created_at->isCurrentMonth())->count(),
             // Income actually recorded this month (subscription payments by paid_at).
             'monthlyRevenue' => (float) SubscriptionPayment::whereYear('paid_at', $now->year)
@@ -62,7 +66,9 @@ class AdminController extends Controller
         $businesses = $query->get();
 
         $filter = $request->input('status', 'all');
-        if (in_array($filter, ['trial', 'paid', 'expired'], true)) {
+        if ($filter === 'disabled') {
+            $businesses = $businesses->filter(fn (Business $b) => $b->isDisabled())->values();
+        } elseif (in_array($filter, ['trial', 'paid', 'expired'], true)) {
             $businesses = $businesses->filter(fn (Business $b) => $b->subscriptionStatus() === $filter)->values();
         }
 
@@ -77,15 +83,83 @@ class AdminController extends Controller
     {
         $business->load('owner');
         $payments = $business->subscriptionPayments()->latest('paid_at')->latest('id')->take(20)->get();
+        $notices = $business->adminNotices()->latest()->take(10)->get();
 
         return view('admin.business-show', [
             'business' => $business,
             'payments' => $payments,
+            'notices' => $notices,
             'salesCount' => $business->sales()->count(),
             'salesTotal' => (float) $business->sales()->sum('total'),
             'productCount' => $business->products()->count(),
             'customerCount' => $business->customers()->count(),
         ]);
+    }
+
+    /** Disable a shopkeeper's account (reason required; data is kept). */
+    public function disable(Request $request, Business $business): RedirectResponse
+    {
+        $data = $request->validate([
+            'reason' => ['required', 'string', 'max:255'],
+        ]);
+
+        $business->update([
+            'status' => Business::STATUS_DISABLED,
+            'disabled_reason' => $data['reason'],
+            'disabled_at' => now(),
+        ]);
+
+        return back()->with('status', $business->name.' — অ্যাকাউন্ট বন্ধ করা হয়েছে। দোকানদার আর লগইন করতে পারবে না, তবে তার ডেটা অক্ষত আছে।');
+    }
+
+    /** Re-enable a disabled account. */
+    public function enable(Business $business): RedirectResponse
+    {
+        $business->update([
+            'status' => Business::STATUS_ACTIVE,
+            'disabled_reason' => null,
+            'disabled_at' => null,
+        ]);
+
+        return back()->with('status', $business->name.' — অ্যাকাউন্ট আবার চালু করা হয়েছে।');
+    }
+
+    /** Send a notification to the shopkeeper (shown on their dashboard). */
+    public function sendNotice(Request $request, Business $business): RedirectResponse
+    {
+        $data = $request->validate([
+            'message' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $business->adminNotices()->create([
+            'message' => $data['message'],
+            'created_by' => auth()->user()?->email,
+        ]);
+
+        return back()->with('status', 'নোটিফিকেশন পাঠানো হয়েছে — দোকানদার ড্যাশবোর্ডে দেখতে পাবে।');
+    }
+
+    /** Delete a shopkeeper completely: user + business + ALL related data. */
+    public function destroy(Request $request, Business $business): RedirectResponse
+    {
+        // The owner's own account can never be deleted from here.
+        if (Hisab::isAdmin($business->owner)) {
+            abort(403, 'অ্যাডমিনের অ্যাকাউন্ট ডিলেট করা যাবে না।');
+        }
+
+        $data = $request->validate([
+            'confirm_name' => ['required', 'string', 'max:150'],
+        ]);
+
+        if (trim($data['confirm_name']) !== $business->name) {
+            return back()->withErrors(['confirm_name' => 'দোকানের নামটি ঠিকভাবে লিখুন — নাম না মিললে ডিলেট হবে না।']);
+        }
+
+        $name = $business->name;
+        BusinessData::deleteBusinessCompletely($business);
+
+        return redirect()->route('admin.businesses')
+            ->with('status', $name.' — অ্যাকাউন্ট ও তার সব ডেটা সম্পূর্ণ মুছে ফেলা হয়েছে।');
     }
 
     /** Extend a subscription by N months and record the payment (plan price). */

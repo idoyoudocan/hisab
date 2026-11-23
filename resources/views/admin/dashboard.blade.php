@@ -8,6 +8,7 @@
   <div class="admin-stat"><div class="label">পেইড</div><div class="value">{{ $paidCount }}</div><div class="sub">মাসিক আয় {{ \App\Support\Hisab::money($monthlyRevenue) }}</div></div>
   <div class="admin-stat"><div class="label">ট্রায়ালে</div><div class="value">{{ $trialCount }}</div><div class="sub">এখনো টাকা দেয়নি</div></div>
   <div class="admin-stat"><div class="label">মেয়াদ শেষ</div><div class="value">{{ $expiredCount }}</div><div class="sub">পেমেন্ট বাকি</div></div>
+  <div class="admin-stat"><div class="label">বন্ধ অ্যাকাউন্ট</div><div class="value">{{ $disabledCount }}</div><div class="sub">অ্যাডমিন বন্ধ করেছে</div></div>
 </div>
 
 <div class="admin-card">

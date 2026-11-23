@@ -10,6 +10,7 @@
     <option value="trial" @selected($status === 'trial')>ট্রায়াল</option>
     <option value="paid" @selected($status === 'paid')>পেইড</option>
     <option value="expired" @selected($status === 'expired')>মেয়াদ শেষ</option>
+    <option value="disabled" @selected($status === 'disabled')>বন্ধ অ্যাকাউন্ট</option>
   </select>
   <button class="btn dark sm" type="submit">খুঁজুন</button>
 </form>
@@ -33,7 +34,8 @@
         <td data-label="ট্রায়াল শেষ">{{ $b->trial_ends_at?->format('d M Y') ?? '—' }}</td>
         <td data-label="পেইড পর্যন্ত">{{ $b->paid_until?->format('d M Y') ?? '—' }}</td>
         <td data-label="স্ট্যাটাস">
-          @if($b->subscriptionStatus() === 'paid')<span class="badge green">পেইড</span>
+          @if($b->isDisabled())<span class="badge red">বন্ধ</span>
+          @elseif($b->subscriptionStatus() === 'paid')<span class="badge green">পেইড</span>
           @elseif($b->subscriptionStatus() === 'trial')<span class="badge amber">ট্রায়াল</span>
           @else<span class="badge red">মেয়াদ শেষ</span>@endif
         </td>

@@ -69,11 +69,14 @@ class DashboardController extends Controller
         ];
         $checklistDone = $checklist['products'] && $checklist['sales'] && $checklist['cashCount'];
 
+        // Unread messages from the admin, shown as a banner on top.
+        $notices = $business->adminNotices()->unread()->latest()->get();
+
         return view('dashboard', compact(
             'business', 'todaySales', 'todaySaleTotal', 'todayProfit',
             'todayExpense', 'todayPurchase', 'cash', 'customerDue',
             'supplierDue', 'lowStock', 'recentSales', 'todayCollections',
-            'insight', 'checklist', 'checklistDone'
+            'insight', 'checklist', 'checklistDone', 'notices'
         ));
     }
 }
